@@ -167,13 +167,25 @@ function data()
             {
                 key = "wall",
                 name = _("Wall"),
-                values = {_("Tiles 1"), _("Tiles 2")},
+                values = {
+                    "ui/construction/street/tiles.tga",
+                    "ui/construction/street/tiles_classic.tga"
+                },
+                uiType = "ICON_BUTTON",
                 defaultIndex = 0
             },
             {
                 key = "floor",
                 name = _("Floor Style"),
-                values = {_("Marble 1"), _("Honeycomb"), _("Marble 2"), _("Concrete"), _("Asphalt")},
+                values = {
+                    "ui/construction/street/marble.tga",
+                    "ui/construction/street/honeycomb.tga",
+                    "ui/construction/street/marble_geometric.tga",
+                    "ui/construction/street/concrete_tiles2.tga",
+                    "ui/construction/street/asphalt.tga"
+                },
+                uiType = "ICON_BUTTON",
+                tooltip = _("Floor Style"),
                 defaultIndex = 0
             },
             {

@@ -16,5 +16,8 @@
             },
             tags = {"Street Construction", "Tunnel"},
         },
+        runFn = function(_)
+            game.config.underpassMod = true
+        end
     }
 end
