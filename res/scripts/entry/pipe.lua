@@ -58,6 +58,15 @@ function pipe.mapi(fun)
     end
 end
 
+function pipe.keys()
+    return function(ls)
+        local result = {}
+        for k, _ in pairs(ls) do result[#result + 1] = k end
+        return result
+    end
+end
+
+
 function pipe.values()
     return function(ls)
         local result = {}

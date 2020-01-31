@@ -1,7 +1,7 @@
--- local dump = require "luadump"
 local pipe = require "entry/pipe"
 local func = require "entry/func"
 local coor = require "entry/coor"
+-- local dump = require "luadump"
 
 local state = {
     warningShaderMod = false,
@@ -27,7 +27,66 @@ local pure = function(pa)
     return params
 end
 
+local showWindow = function()
+    if (not state.linkEntries and #state.entries > 0) then
+        local finishIcon = gui.imageView_create("underpass.link.icon", "ui/construction/street/underpass_entry_op.tga")
+        local finishButton = gui.button_create("underpass.link.button", finishIcon)
+        local vLayout = gui.boxLayout_create("underpass.link.vLayout", "VERTICAL")
+        vLayout:addItem(finishButton)
+        state.linkEntries = gui.window_create("underpass.link.window", _("Underpass\nConstruction"), vLayout)
+        state.linkEntries:onClose(function()state.linkEntries = false end)
+        
+        finishButton:onClick(function()
+            state.linkEntries:close()
+            game.interface.sendScriptEvent("__underpassEvent__", "construction", {})
+        end)
+    end
+    if (state.linkEntries) then
+        game.gui.window_setPosition(state.linkEntries.id, 200, 200)
+    end
+end
+
+local closeWindow = function()
+    if (state.linkEntries) then
+        local w = state.linkEntries
+        state.linkEntries = nil
+        w:close()
+    end
+end
+
+local shaderWarning = function()
+    if (not game.config.shaderMod) then
+        if not state.warningShaderMod then
+            local textview = gui.textView_create(
+                "underpass.warning.textView",
+                _([["Underpass" mod requires "Shader Enhancement" mod, you will see strange texture without this mod.]]),
+                400
+            )
+            local layout = gui.boxLayout_create("underpass.warning.boxLayout", "VERTICAL")
+            layout:addItem(textview)
+            state.warningShaderMod = gui.window_create(
+                "underpass.warning.window",
+                _("Warning"),
+                layout
+            )
+            state.warningShaderMod:onClose(function()state.warningShaderMod = false end)
+        end
+        
+        local mainView = game.gui.getContentRect("mainView")
+        local mainMenuHeight = game.gui.getContentRect("mainMenuTopBar")[4] + game.gui.getContentRect("mainMenuBottomBar")[4]
+        local size = game.gui.calcMinimumSize(state.warningShaderMod.id)
+        local y = mainView[4] - size[2] - mainMenuHeight
+        local x = mainView[3] - size[1]
+        
+        game.gui.window_setPosition(state.warningShaderMod.id, x * 0.5, y * 0.5)
+        game.gui.setHighlighted(state.warningShaderMod.id, true)
+    end
+end
+
 local script = {
+    guiInit = function()
+        showWindow()
+    end,
     save = function() return state end,
     load = function(data)
         if data then
@@ -40,7 +99,7 @@ local script = {
     handleEvent = function(src, id, name, param)
         if (id == "__underpassEvent__") then
             if (name == "remove") then
-                state.entries = func.filter(state.entries, pipe.contains(param, e))
+                state.entries = func.filter(state.entries, function(e) return not func.contains(param, e) end)
             elseif (name == "new") then
                 state.entries[#state.entries + 1] = param.id
             elseif (name == "construction") then
@@ -75,18 +134,16 @@ local script = {
         end
     end,
     guiHandleEvent = function(id, name, param)
+        if (#state.entries < 1 and name ~= "window.close") then
+            closeWindow()
+        end
         if name == "builder.apply" then
             local toRemove = param.proposal.toRemove
             local toAdd = param.proposal.toAdd
             if toRemove then
                 local params = {}
-                for i = 1, #toRemove do if func.contains(state.entries) then params[#params + 1] = toRemove[i] end end
+                for _, r in ipairs(toRemove) do if func.contains(state.entries, r) then params[#params + 1] = r end end
                 if (#params > 0) then
-                    if state.entries < 2 then
-                        if state.linkEntries then
-                            state.linkEntries:close()
-                        end
-                    end
                     game.interface.sendScriptEvent("__underpassEvent__", "remove", params)
                 end
             end
@@ -94,48 +151,8 @@ local script = {
                 for i = 1, #toAdd do
                     local con = toAdd[i]
                     if (con.fileName == [[street/underpass_entry.con]]) then
-                        if (not game.config.shaderMod) then
-                            if not state.warningShaderMod then
-                                local textview = gui.textView_create(
-                                    "underpass.warning.textView",
-                                    _([["Underpass" mod requires "Shader Enhancement" mod, you will see strange texture without this mod.]]),
-                                    400
-                                )
-                                local layout = gui.boxLayout_create("underpass.warning.boxLayout", "VERTICAL")
-                                layout:addItem(textview)
-                                state.warningShaderMod = gui.window_create(
-                                    "underpass.warning.window",
-                                    _("Warning"),
-                                    layout
-                                )
-                                state.warningShaderMod:onClose(function()state.warningShaderMod = false end)
-                            end
-                            
-                            local mainView = game.gui.getContentRect("mainView")
-                            local mainMenuHeight = game.gui.getContentRect("mainMenuTopBar")[4] + game.gui.getContentRect("mainMenuBottomBar")[4]
-                            local size = game.gui.calcMinimumSize(state.warningShaderMod.id)
-                            local y = mainView[4] - size[2] - mainMenuHeight
-                            local x = mainView[3] - size[1]
-                            
-                            game.gui.window_setPosition(state.warningShaderMod.id, x * 0.5, y * 0.5)
-                            game.gui.setHighlighted(state.warningShaderMod.id, true)
-                        end
-                        if #state.entries > 0 then
-                            if not state.linkEntries then
-                                local finishIcon = gui.imageView_create("underpass.link.icon", "ui/construction/street/underpass_entry_op.tga")
-                                local finishButton = gui.button_create("underpass.link.button", finishIcon)
-                                local vLayout = gui.boxLayout_create("underpass.link.vLayout", "VERTICAL")
-                                vLayout:addItem(finishButton)
-                                state.linkEntries = gui.window_create("underpass.link.window", _("Underpass\nConstruction"), vLayout)
-                                state.linkEntries:onClose(function()state.linkEntries = false end)
-                                
-                                finishButton:onClick(function()
-                                    state.linkEntries:close()
-                                    game.interface.sendScriptEvent("__underpassEvent__", "construction", {})
-                                end)
-                                game.gui.window_setPosition(state.linkEntries.id, 200, 200)
-                            end
-                        end
+                        shaderWarning()
+                        showWindow()
                         game.interface.sendScriptEvent("__underpassEvent__", "new", {id = param.result[1]})
                     end
                 end

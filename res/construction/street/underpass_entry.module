@@ -2,7 +2,6 @@ local func = require "entry/func"
 local coor = require "entry/coor"
 local pipe = require "entry/pipe"
 local general = require "entry/general"
--- local dump = require "luadump"
 
 local unpack = table.unpack
 local ma = math
@@ -148,8 +147,8 @@ function data()
             }
             
             result.groundFaces[#result.groundFaces + 1] = {face = holeFace, modes = {{type = "FILL", key = "hole.lua"}}}
-            result.groundFaces[#result.groundFaces + 1] = {face = terrainFace, modes = {{type = "FILL", key = "town_concrete.lua"}}}
-            result.groundFaces[#result.groundFaces + 1] = {face = terrainFace, modes = {{type = "STROKE_OUTER", key = "town_concrete_border.lua"}}}
+            -- result.groundFaces[#result.groundFaces + 1] = {face = terrainFace, modes = {{type = "FILL", key = "town_concrete.lua"}}}
+            -- result.groundFaces[#result.groundFaces + 1] = {face = terrainFace, modes = {{type = "STROKE_OUTER", key = "town_concrete_border.lua"}}}
         end,
         
         getModelsFn = function(params)

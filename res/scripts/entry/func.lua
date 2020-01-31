@@ -42,6 +42,14 @@ function func.map(ls, fun)
     return func.pi.map(fun)(ls)
 end
 
+function func.keys(ls)
+    return func.pi.keys()(ls)
+end
+
+function func.values(ls)
+    return func.pi.values()(ls)
+end
+
 function func.mapValues(ls, fun)
     return func.pi.mapValues(fun)(ls)
 end

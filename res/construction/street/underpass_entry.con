@@ -2,7 +2,6 @@ local func = require "entry/func"
 local coor = require "entry/coor"
 local pipe = require "entry/pipe"
 local general = require "entry/general"
--- local dump = require "luadump"
 
 local ma = math
 local abs = ma.abs
