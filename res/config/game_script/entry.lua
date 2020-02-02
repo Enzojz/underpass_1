@@ -43,7 +43,7 @@ local addEntry = function(id)
             if (isEntry or isStation) then
                 local layoutId = "underpass.link." .. tostring(id) .. "."
                 local hLayout = gui.boxLayout_create(layoutId .. "layout", "HORIZONTAL")
-                local label = gui.textView_create(layoutId .. "label", isEntry and tostring(id) or entity.name)
+                local label = gui.textView_create(layoutId .. "label", isEntry and tostring(id) or entity.name, 150)
                 local icon = gui.imageView_create(layoutId .. "icon", 
                     isEntry and
                     "ui/construction/street/underpass_entry_small.tga" or 
@@ -59,8 +59,8 @@ local addEntry = function(id)
                 local checkboxBtn = gui.button_create(layoutId .. "checkbox", checkboxView)
                 hLayout:addItem(locateBtn)
                 hLayout:addItem(checkboxBtn)
-                hLayout:addItem(label)
                 hLayout:addItem(icon)
+                hLayout:addItem(label)
                 
                 locateBtn:onClick(function()
                     local pos = entity.position
@@ -81,7 +81,7 @@ local addEntry = function(id)
                 
                 local comp = gui.component_create(layoutId .. "comp", "")
                 comp:setLayout(hLayout)
-                game.gui.boxLayout_addItem("underpass.link.vLayout", comp.id)
+                state.linkEntries.layout:addItem(comp)
                 state.addedItems[#state.addedItems + 1] = id
             end
         end
@@ -92,9 +92,24 @@ local showWindow = function()
     if (not state.linkEntries and #state.items > 0) then
         local finishIcon = gui.imageView_create("underpass.link.icon", "ui/construction/street/underpass_entry_op.tga")
         local finishButton = gui.button_create("underpass.link.button", finishIcon)
+        local desc = gui.textView_create("underpass.link.description", "")
+        
+        local hLayout = gui.boxLayout_create("underpass.link.hLayout", "HORIZONTAL")
+
+        hLayout:addItem(finishButton)
+        hLayout:addItem(desc)
+        local comp = gui.component_create("underpass.link.hComp", "")
+        comp:setLayout(hLayout)
+
         local vLayout = gui.boxLayout_create("underpass.link.vLayout", "VERTICAL")
-        vLayout:addItem(finishButton)
-        state.linkEntries = gui.window_create("underpass.link.window", _("Underpass\nConstruction"), vLayout)
+        vLayout:addItem(comp)
+
+        state.linkEntries = gui.window_create("underpass.link.window", _("UNDERPASS_CON"), vLayout)
+        state.linkEntries.desc = desc
+        state.linkEntries.button = finishButton
+        state.linkEntries.button.icon = finishIcon
+        state.linkEntries.layout = vLayout
+        
         state.linkEntries:onClose(function()
             state.linkEntries = false
             state.addedItems = {}
@@ -112,14 +127,28 @@ local checkFn = function()
     if (state.linkEntries) then
         local stations = func.filter(state.checkedItems, function(e) return func.contains(state.stations, e) end)
         local entries = func.filter(state.checkedItems, function(e) return func.contains(state.entries, e) end)
-        if (#stations > 0 and #entries > 0) then
-            game.gui.setEnabled("underpass.link.button", true)
-            game.gui.imageView_setImage("underpass.link.icon", "ui/construction/station/rail/mus_op.tga")
-        elseif (#stations == 0 and #entries > 1) then
-            game.gui.setEnabled("underpass.link.button", true)
-            game.gui.imageView_setImage("underpass.link.icon", "ui/construction/street/underpass_entry_op.tga")
+        if (#stations > 0) then
+            if (#entries > 0) then
+                game.gui.setEnabled(state.linkEntries.button.id, true)
+                state.linkEntries.desc:setText(_("STATION_CAN_FINALIZE"), 200)
+            else
+                game.gui.setEnabled(state.linkEntries.button.id, false)
+                state.linkEntries.desc:setText(_("STATION_NEED_ENTRY"), 200)
+            end
+            state.linkEntries.button.icon:setImage("ui/construction/station/rail/mus_op.tga")
+            state.linkEntries:setTitle(_("STATION_CON"))
+        elseif (#stations == 0) then
+            if (#entries > 1) then
+                game.gui.setEnabled(state.linkEntries.button.id, true)
+                state.linkEntries.desc:setText(_("UNDERPASS_CAN_FINALIZE"), 200)
+            else
+                game.gui.setEnabled(state.linkEntries.button.id, false)
+                state.linkEntries.desc:setText(_("UNDERPASS_NEED_ENTRY"), 200)
+            end
+            state.linkEntries.button.icon:setImage("ui/construction/street/underpass_entry_op.tga")
+            state.linkEntries:setTitle(_("UNDERPASS_CON"))
         else
-            game.gui.setEnabled("underpass.link.button", false)
+            game.gui.setEnabled(state.linkEntries.button.id, false)
         end
     end
 end
@@ -137,7 +166,7 @@ local shaderWarning = function()
         if not state.warningShaderMod then
             local textview = gui.textView_create(
                 "underpass.warning.textView",
-                _([["Underpass" mod requires "Shader Enhancement" mod, you will see strange texture without this mod.]]),
+                _([["SHADER_WARNING"]]),
                 400
             )
             local layout = gui.boxLayout_create("underpass.warning.boxLayout", "VERTICAL")
@@ -186,7 +215,8 @@ local buildStation = function(entries, stations)
         func.with(
             pure(ref.params),
             {
-                modules = modules
+                modules = modules,
+                isFinalized = 1
             })
     )
     if newId then

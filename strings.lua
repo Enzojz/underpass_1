@@ -24,19 +24,30 @@ function data()
         en = {
             ["name"] = "Underpass",
             ["desc"] = descEN,
+            ["UNDERPASS_CON"] = "Underpass Construction",
+            ["STATION_CON"] = "Underground Station Construction",
+            ["SHADER_WARNING"] = [["Underpass" mod requires "Shader Enhancement" mod, you will see strange texture without this mod.]],
+            ["STATION_CAN_FINALIZE"] =   
+[[You can reconfigurate the platform layout in modular way.
+Click on the finalize button on the left to link all 
+platforms and entries.]],
+            ["STATION_NEED_ENTRY"] =     
+[[At least an entry and a platform level are needed to
+finalize an underground station.]],
+            ["UNDERPASS_CAN_FINALIZE"] = 
+[[Click on the finalize button on the left to link all entries
+to build an underpass.
+Please keep in mind that the game pathfinding algorithm
+takes always the shortest path, you need to design carefully
+the entry layout to make the pathes short.]],
+            ["UNDERPASS_NEED_ENTRY"] = 
+[[At least two entries are needed to finalize an underpass.]]
         },
         zh_CN = {
             ["name"] = "人行地道",
             ["desc"] = descCN,
             ["Wall"] = "墙面",
-            ["Tiles 1"] = "瓷砖1",
-            ["Tiles 2"] = "瓷砖2",
             ["Floor Style"] = "地面",
-            ["Marble 1"] = "大理石1",
-            ["Marble 2"] = "大理石2",
-            ["Honeycomb"] = "蜂窝",
-            ["Concrete"] = "水泥砖",
-            ["Asphalt"] = "沥青",
             ["Style"] = "风格",
             ["Glass"] = "玻璃",
             ["Normal"] = "栏杆",
@@ -44,9 +55,23 @@ function data()
             ["Width (m)"] = "宽度(米)",
             ["Underpass Entry"] = "地道入口",
             ["An underpass entry"] = "通往人行地道的入口.",
-            ["\"Underpass\" mod requires \"Shader Enhancement\" mod, you will see strange texture without this mod."] = [["人行地道"模组需要"着色器增强"模组的支持方可运行，否则您将看到不正常的贴图]],
+            ["SHADER_WARNING"] = [["人行地道"模组需要"着色器增强"模组的支持方可运行，否则您将看到不正常的贴图]],
             ["Warning"] = "警告",
-            ["Underpass\nConstruction"] = "建造人行地道"
+            ["UNDERPASS_CON"] = "建造人行地道",
+            ["STATION_CON"] = "建造地下车站",
+            ["STATION_CAN_FINALIZE"] = 
+[[您可以通过模块化的方式配置站厅布局。
+在设置完所有站厅和出入口后，点击左侧的
+“完成”按钮完成车站建造。]],
+            ["STATION_NEED_ENTRY"] = 
+[[每座地下车站至少需要设置一个出入口。]],
+            ["UNDERPASS_CAN_FINALIZE"] = 
+[[设置完所有人行地道入口后，点击左侧的
+“完成”按钮完成人行地道建造。
+注意游戏的择路算法是最短路径，为了确保
+建设的地道被使用，请仔细规划地道布局]],
+            ["UNDERPASS_NEED_ENTRY"] = 
+[[每条人行地道至少需要一对出入口。]]
         }
     }
 end
