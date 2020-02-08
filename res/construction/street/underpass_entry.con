@@ -3,19 +3,6 @@ local coor = require "entry/coor"
 local pipe = require "entry/pipe"
 local general = require "entry/general"
 
-local ma = math
-local abs = ma.abs
-local ceil = ma.ceil
-local floor = ma.floor
-local pi = ma.pi
-local atan = ma.atan
-local pow = ma.pow
-local cos = ma.cos
-local sin = ma.sin
-local min = ma.min
-local e = ma.exp(1)
-local log = ma.log
-local log10 = log(10)
 local unpack = table.unpack
 
 local widthList = {2, 3, 4, 5, 6}
@@ -31,8 +18,8 @@ function data()
                     yearTo = 0
                 },
                 description = {
-                    name = _("Underpass Entry"),
-                    description = _("An underpass entry"),
+                    name = _("MENU_NAME"),
+                    description = _("MENU_DESC"),
                     icon = "ui/construction/street/underpass_entry.tga"
                 },
                 data = {
@@ -41,7 +28,7 @@ function data()
             }
         }
     
-    local createTemplateFn = function(params)
+    local createTemplateFn = function(_)
         local result = {
             [1] = "street/underpass_entry.module",
         }
@@ -49,20 +36,24 @@ function data()
         return result
     end
     
-    local upgradeFn = function(params)
-        end
+    local upgradeFn = function(_) end
     
     local updateFn = function(params)
-        local result = {}
-        local width = widthList[(params.width or 1) + 1]
-        local dz = 0
-        
-        local baseConn = {
-            coor.xyz(-3.5 - width * 0.5, 5.2085, -3.9 + dz),
-            coor.xyz(3.5 + width * 0.5, 5.2085, -3.9 + dz)
+        local result = {
+            entryConnectors = {},
+            colliders = {},
+            terrainAlignmentLists = {},
+            groundFaces = {},
+            terminalGroups = {},
+            stations = {},
+            dependentSlots = {},
+            edgeLists = {},
+            slotConfig = {},
+            occupied = {{}, {}, {}, {}},
+            cost = 0,
+            models = pipe.new * {}
         }
         
-        result.modules = params.modules
         result.slots = func.mapi(params.modules, function(e, i)
             return {
                 id = i,
@@ -71,76 +62,36 @@ function data()
                 spacing = {0, 0, 0, 0}
             }
         end)
-        
-        if (params.modules and #params.modules > 1) then
-            local trans = pipe.new * params.modules * pipe.map(pipe.select("transf")) * pipe.filter(pipe.noop())
-            if (#trans > 1) then
-                local allConnectors = trans
-                    * pipe.mapi(function(t, i)
-                        return {i = i, connectors = func.map(baseConn, function(c) return c .. t end)}
-                    end)
-                
-                local entryConn = allConnectors
-                    * pipe.map(function(co) return allConnectors
-                        * pipe.filter(function(c) return c.i > co.i end)
-                        * pipe.map(function(target)
-                            return {
-                                {
-                                    conn = general.unitLane(co.connectors[1], target.connectors[1]),
-                                    distance = (co.connectors[1] - target.connectors[1]):length(),
-                                    info = {{co.i, 1}, {target.i, 1}}
-                                },
-                                {
-                                    conn = general.unitLane(co.connectors[1], target.connectors[2]),
-                                    distance = (co.connectors[1] - target.connectors[2]):length(),
-                                    info = {{co.i, 1}, {target.i, 2}}
-                                },
-                                {
-                                    conn = general.unitLane(co.connectors[2], target.connectors[1]),
-                                    distance = (co.connectors[2] - target.connectors[1]):length(),
-                                    info = {{co.i, 2}, {target.i, 1}}
-                                },
-                                {
-                                    conn = general.unitLane(co.connectors[2], target.connectors[2]),
-                                    distance = (co.connectors[2] - target.connectors[2]):length(),
-                                    info = {{co.i, 2}, {target.i, 2}}
-                                }
+
+        result.terminateConstructionHook = function()
+            local entryConn = {}
+            local entrySide = {}
+            for i = 1, #result.entryConnectors do
+                entrySide[i] = {false, false}
+                for j = 1, i - 1 do
+                    local cl = result.entryConnectors[i]
+                    local cr = result.entryConnectors[j]
+                    local dist = {}
+                    for u = 1, 2 do
+                        for v = 1, 2 do
+                            dist[#dist+1] = {
+                                conn = general.unitLane(cl[u], cr[v]),
+                                distance = (cl[u] - cr[v]):length2(),
+                                info = {{i, u}, {j, v}}
                             }
-                        end)
-                        * pipe.map(pipe.min(function(l, r) return l.distance < r.distance end))
+                        end
                     end
-                    )
-                    * pipe.flatten()
-                
-                result.entrySide = entryConn
-                    * pipe.map(pipe.select("info"))
-                    * pipe.flatten()
-                    * pipe.fold({}, function(r, c)
-                        return func.with(r,
-                            {
-                                [c[1]] = func.with(r[c[1]] or {false, false}, {[c[2]] = true})
-                            })
-                    end)
-                result.models = entryConn * pipe.map(pipe.select("conn"))
-            else
-                result.models = {}
+                    entryConn[#entryConn+1] = func.min(dist, function(l, r) return l.distance < r.distance end)
+                end
             end
-        else
-            result.models = {}
+            
+            for i = 1, #entryConn do
+                local info = entryConn[i].info
+                entrySide[info[1][1]][info[1][2]] = true
+                entrySide[info[2][1]][info[2][2]] = true
+                result.models[#result.models + 1] = entryConn[i].conn
+            end
         end
-        
-        result.colliders = {}
-        result.terrainAlignmentLists = {}
-        result.groundFaces = {}
-        result.terminalGroups = {}
-        result.stations = {}
-        result.dependentSlots = {}
-        result.edgeLists = {}
-        result.slotConfig = {}
-        
-        result.occupied = {{}, {}, {}, {}}
-        result.cost = 0
-        result.terminateConstructionHook = nil
         return result
     end
     
@@ -160,13 +111,13 @@ function data()
         params = {
             {
                 key = "style",
-                name = _("Style"),
-                values = {_("Glass"), _("Normal"), _("Concrete")},
+                name = _("MENU_FENCE_STYLE"),
+                values = {_("MENU_FENCE_GLASS"), _("MENU_FENCE_IRON"), _("MENU_FENCE_CONCR")},
                 defaultIndex = 0
             },
             {
                 key = "wall",
-                name = _("Wall"),
+                name = _("MENU_WALL"),
                 values = {
                     "ui/construction/street/tiles.tga",
                     "ui/construction/street/tiles_classic.tga"
@@ -176,7 +127,7 @@ function data()
             },
             {
                 key = "floor",
-                name = _("Floor Style"),
+                name = _("MENU_FLOOR_STYLE"),
                 values = {
                     "ui/construction/street/marble.tga",
                     "ui/construction/street/honeycomb.tga",
@@ -185,12 +136,11 @@ function data()
                     "ui/construction/street/asphalt.tga"
                 },
                 uiType = "ICON_BUTTON",
-                tooltip = _("Floor Style"),
                 defaultIndex = 0
             },
             {
                 key = "width",
-                name = _("Width (m)"),
+                name = _("MENU_WIDTH"),
                 values = func.map(widthList, tostring),
                 defaultIndex = 1
             },

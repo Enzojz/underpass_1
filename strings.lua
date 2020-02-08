@@ -8,7 +8,7 @@ Usage:
 * This mod requires "Shader enhancement" mod to render textures correctly.
 ]]
 
-local descCN = [[本模可以自由建造人行地道
+local descCN = [[本模组可自由建造人行地道
 使用方法:
 1. 在道路建设菜单中找到人行地道入口选项
 2. 在地图上摆放至少两个入口
@@ -19,14 +19,37 @@ local descCN = [[本模可以自由建造人行地道
 ]]
 
 
+local descTC = [[本模組可自由建造人行地道
+使用方法:
+1. 在道路建設菜單中找到人行地道入口選項
+2. 在地圖上擺放至少兩個入口
+3. 點擊螢幕上出現的完成按鈕
+4. 完成建造!
+
+* 本模組需要“著色器增強”模組方可正確渲染
+]]
+
+
 function data()
     return {
         en = {
             ["name"] = "Underpass",
             ["desc"] = descEN,
+            ["MENU_WALL"] = "Wall Pattern",
+            ["MENU_FLOOR_STYLE"] = "Floor Pattern",
+            ["MENU_FENCE_STYLE"] = "Fence Style",
+            ["MENU_FENCE_GLASS"] = "Glass",
+            ["MENU_FENCE_IRON"] = "Iron",
+            ["MENU_FENCE_CONCR"] = "Concrete",
+            ["MENU_WIDTH"] = "Width(m)",
+            ["MENU_NAME"] = "Underpass/Undergroudn Entry",
+            ["MENU_DESC"] = "An underpass or underground station entry",
             ["UNDERPASS_CON"] = "Underpass Construction",
             ["STATION_CON"] = "Underground Station Construction",
             ["SHADER_WARNING"] = [["Underpass" mod requires "Shader Enhancement" mod, you will see strange texture without this mod.]],
+            ["STATION_MAX_LIMIT"] = 
+[[You can only build at most 8 platform levels into one
+station. Uncheck platform levels to reduce them.]],
             ["STATION_CAN_FINALIZE"] =   
 [[You can reconfigurate the platform layout in modular way.
 Click on the finalize button on the left to link all 
@@ -46,19 +69,22 @@ the entry layout to make the pathes short.]],
         zh_CN = {
             ["name"] = "人行地道",
             ["desc"] = descCN,
-            ["Wall"] = "墙面",
-            ["Floor Style"] = "地面",
-            ["Style"] = "风格",
-            ["Glass"] = "玻璃",
-            ["Normal"] = "栏杆",
-            ["Concrete"] = "水泥",
-            ["Width (m)"] = "宽度(米)",
-            ["Underpass Entry"] = "地道入口",
-            ["An underpass entry"] = "通往人行地道的入口.",
+            ["MENU_WALL"] = "墙面",
+            ["MENU_FLOOR_STYLE"] = "地面纹理",
+            ["MENU_FENCE_STYLE"] = "围栏风格",
+            ["MENU_FENCE_GLASS"] = "玻璃",
+            ["MENU_FENCE_IRON"] = "栏杆",
+            ["MENU_FENCE_CONCR"] = "水泥",
+            ["MENU_WIDTH"] = "宽度(米)",
+            ["MENU_NAME"] = "地道/地下车站入口",
+            ["MENU_DESC"] = "通往人行地道或地下车站的入口.",
             ["SHADER_WARNING"] = [["人行地道"模组需要"着色器增强"模组的支持方可运行，否则您将看到不正常的贴图]],
             ["Warning"] = "警告",
             ["UNDERPASS_CON"] = "建造人行地道",
             ["STATION_CON"] = "建造地下车站",
+            ["STATION_MAX_LIMIT"] = 
+[[在一座地下车站中最多只能建造八个站台层，
+点击站台前的圆点减少站台层。]],
             ["STATION_CAN_FINALIZE"] = 
 [[您可以通过模块化的方式配置站厅布局。
 在设置完所有站厅和出入口后，点击左侧的
@@ -72,6 +98,39 @@ the entry layout to make the pathes short.]],
 建设的地道被使用，请仔细规划地道布局]],
             ["UNDERPASS_NEED_ENTRY"] = 
 [[每条人行地道至少需要一对出入口。]]
+        },
+        zh_TW = {            
+            ["name"] = "人行地道",
+            ["desc"] = descTC,            
+            ["MENU_WALL"] = "牆面",
+            ["MENU_FLOOR_STYLE"] = "地面紋理",
+            ["MENU_FENCE_STYLE"] = "圍欄風格",
+            ["MENU_FENCE_GLASS"] = "玻璃",
+            ["MENU_FENCE_IRON"] = "欄杆",
+            ["MENU_FENCE_CONCR"] = "水泥",
+            ["MENU_WIDTH"] = "寬度(米)",            
+            ["MENU_NAME"] = "地道/地下車站入口",
+            ["MENU_DESC"] = "通往人行地道或地下車站的入口.",
+            ["SHADER_WARNING"] = [["人行地道"模組需要"著色器增強"模組的支持方可運行，否則您將看到不正常的貼圖]],
+            ["Warning"] = "警告",
+            ["UNDERPASS_CON"] = "建造人行地道",
+            ["STATION_CON"] = "建造地下車站",
+            ["STATION_MAX_LIMIT"] = 
+[[在一座地下車站中最多只能建造八個月臺層，
+點擊月臺前的圓點減少月臺層。]],
+            ["STATION_CAN_FINALIZE"] = 
+[[您可以通過模組化的方式配置站廳佈局。
+在設置完所有站廳和出入口後，點擊左側的
+“完成”按鈕完成車站建造。]],
+            ["STATION_NEED_ENTRY"] = 
+[[每座地下車站至少需要設置一個出入口。]],
+            ["UNDERPASS_CAN_FINALIZE"] = 
+[[設置完所有人行地道入口後，點擊左側的
+“完成”按鈕完成人行地道建造。
+注意遊戲的擇路演算法是最短路徑，為了確保
+建設的地道被使用，請仔細規劃地道佈局]],
+            ["UNDERPASS_NEED_ENTRY"] = 
+[[每條人行地道至少需要一對出入口。]]
         }
     }
 end

@@ -1,7 +1,7 @@
 local pipe = require "entry/pipe"
 local func = require "entry/func"
 local coor = require "entry/coor"
-local dump = require "luadump"
+-- local dump = require "luadump"
 
 local state = {
     warningShaderMod = false,
@@ -128,7 +128,10 @@ local checkFn = function()
         local stations = func.filter(state.checkedItems, function(e) return func.contains(state.stations, e) end)
         local entries = func.filter(state.checkedItems, function(e) return func.contains(state.entries, e) end)
         if (#stations > 0) then
-            if (#entries > 0) then
+            if (#stations > 8) then
+                game.gui.setEnabled(state.linkEntries.button.id, false)
+                state.linkEntries.desc:setText(_("STATION_MAX_LIMIT"), 200)
+            elseif (#entries > 0) then
                 game.gui.setEnabled(state.linkEntries.button.id, true)
                 state.linkEntries.desc:setText(_("STATION_CAN_FINALIZE"), 200)
             else
@@ -195,19 +198,30 @@ local buildStation = function(entries, stations)
     local vecRef, rotRef, _ = coor.decomposite(ref.transf)
     local iRot = coor.inv(cov(rotRef))
     local _ = stations * pipe.range(2, #stations) * pipe.map(pipe.select("id")) * pipe.forEach(game.interface.bulldoze)
-    -- local _ = entries * pipe.map(pipe.select("id")) * pipe.forEach(game.interface.bulldoze)
+    local _ = entries * pipe.map(pipe.select("id")) * pipe.forEach(game.interface.bulldoze)
     local modules = {}
     for i = 1, #stations do
         local e = stations[i]
         local vec, rot, _ = coor.decomposite(e.transf)
-        local params =  pure(e.params)
         for slotId, m in pairs(e.params.modules) do
             modules[slotId + (i - 1) * 10000] = func.with(m, 
             {
-                params = params,
+                params = func.with(pure(e.params), {isFinalized = 1}),
                 transf = iRot * rot * coor.trans((vec - vecRef) .. iRot),
             })
         end
+    end
+    
+    for i = 1, #entries do
+        local e = entries[i]
+        local vec, rot, _ = coor.decomposite(e.transf)
+        modules[90000 + i] = {
+            metadata = {entry = true},
+            name = "street/underpass_entry.module",
+            variant = 0,
+            transf = iRot * rot * coor.trans((vec - vecRef) .. iRot),
+            params = pure(e.params)
+        }
     end
     local newId = game.interface.upgradeConstruction(
         ref.id,

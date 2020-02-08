@@ -132,9 +132,17 @@ function data()
             local _ = func.forEach(getModels(params, result, slotId), function(m) addModelFn(m.id, m.transf) end)
             local dz = 0
             local width = widthList[(params.width or 1) + 1]
+            
+            result.entryConnectors[#result.entryConnectors + 1] = {
+                coor.xyz(-3.5 - width * 0.5, 5.2085, -3.9 + dz) .. transform,
+                coor.xyz(3.5 + width * 0.5, 5.2085, -3.9 + dz) .. transform
+            }
+
+            
             local holeFace = general.surfaceOf(coor.xyz(width + 0.25, 6.7, 1), coor.xyz(0.0, -1.55, dz), transform)
             local terrainFace = general.surfaceOf(coor.xyz(width + 1, 10, 1), coor.xyz(0.0, -2.25, dz), transform)
             local aboveFace = general.surfaceOf(coor.xyz(width + 1, 5.25, 1), coor.xyz(0.0, 4.625, dz), transform)
+            local aboveFaceH = general.surfaceOf(coor.xyz(width + 7, 3, 1), coor.xyz(0.0, 7.25 - 1.5, dz), transform)
             
             result.terrainAlignmentLists[#result.terrainAlignmentLists + 1] = {
                 type = "EQUAL",
@@ -143,7 +151,7 @@ function data()
             
             result.terrainAlignmentLists[#result.terrainAlignmentLists + 1] = {
                 type = "GREATER",
-                faces = {aboveFace}
+                faces = {aboveFace, aboveFaceH}
             }
             
             result.groundFaces[#result.groundFaces + 1] = {face = holeFace, modes = {{type = "FILL", key = "hole.lua"}}}
