@@ -51,7 +51,8 @@ function data()
             slotConfig = {},
             occupied = {{}, {}, {}, {}},
             cost = 0,
-            models = pipe.new * {}
+            models = pipe.new * {},
+            entryModules = params.modules
         }
         
         result.slots = func.mapi(params.modules, function(e, i)

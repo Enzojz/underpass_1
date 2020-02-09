@@ -116,8 +116,10 @@ local showWindow = function()
         end)
         
         finishButton:onClick(function()
-            state.linkEntries:close()
-            game.interface.sendScriptEvent("__underpassEvent__", "construction", {})
+            if (state.linkEntries) then
+                state.linkEntries:close()
+                game.interface.sendScriptEvent("__underpassEvent__", "construction", {})
+            end
         end)
         game.gui.window_setPosition(state.linkEntries.id, 200, 200)
     end
@@ -220,7 +222,7 @@ local buildStation = function(entries, stations)
             name = "street/underpass_entry.module",
             variant = 0,
             transf = iRot * rot * coor.trans((vec - vecRef) .. iRot),
-            params = pure(e.params)
+            params = func.with(pure(e.params), {isStation = true})
         }
     end
     local newId = game.interface.upgradeConstruction(

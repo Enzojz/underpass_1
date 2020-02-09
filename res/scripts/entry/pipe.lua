@@ -142,7 +142,7 @@ function pipe.mapn(...)
     return function(fun)
         local result = {}
         for i = 1, #ls[1] do
-            params = ls * pipe.map(pipe.select(i)) 
+            local params = ls * pipe.map(pipe.select(i)) 
             result[i] = fun(unpack(params))
         end
         return result
@@ -155,7 +155,7 @@ function pipe.mapx(...)
         return function(l)
             local result = {}
             for i = 1, #l do
-                params = ls * pipe.map(pipe.select(i)) 
+                local params = ls * pipe.map(pipe.select(i)) 
                 result[i] = fun(l[i], unpack(params))
             end
             return result
