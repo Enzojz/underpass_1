@@ -6,6 +6,12 @@ Usage:
 4. Finished!
 
 * This mod requires "Shader enhancement" mod to render textures correctly.
+
+Changelog:
+1.1
+- Adaption of underground station
+1.2
+- Support of station name sign
 ]]
 
 local descCN = [[本模组可自由建造人行地道
@@ -16,6 +22,12 @@ local descCN = [[本模组可自由建造人行地道
 4. 完成建造!
 
 * 本模组需要“着色器增强”模组方可正确渲染
+
+更新日志:
+1.1
+- 增加对地下车站的支持
+1.2
+- 增加对站名牌的支持
 ]]
 
 
@@ -27,6 +39,12 @@ local descTC = [[本模組可自由建造人行地道
 4. 完成建造!
 
 * 本模組需要“著色器增強”模組方可正確渲染
+
+更新日誌:
+1.1
+- 增加對地下車站的支持
+1.2
+- 增加對站名牌的支持
 ]]
 
 
