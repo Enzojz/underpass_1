@@ -1,7 +1,6 @@
 local pipe = require "entry/pipe"
 local func = require "entry/func"
 local coor = require "entry/coor"
-local dump = require "luadump"
 
 local state = {
     warningShaderMod = false,
@@ -9,10 +8,10 @@ local state = {
     items = {},
     addedItems = {},
     checkedItems = {},
-
+    
     stations = {},
     entries = {},
-
+    
     linkEntries = false,
     built = {},
     builtLevelCount = {}
@@ -36,6 +35,22 @@ local pure = function(pa)
     return params
 end
 
+local decomp = function(params)
+    local group = {}
+    for slotId, m in pairs(params.modules) do
+        local groupId = (slotId - slotId % 10000) / 10000 % 10
+        if not group[groupId] then
+            group[groupId] = {
+                modules = {},
+                params = m.params,
+                transf = m.transf
+            }
+        end
+        group[groupId].modules[slotId - groupId * 10000] = m
+    end
+    return group
+end
+
 local addEntry = function(id)
     if (state.linkEntries) then
         local entity = game.interface.getEntity(id)
@@ -47,16 +62,16 @@ local addEntry = function(id)
                 local layoutId = "underpass.link." .. tostring(id) .. "."
                 local hLayout = gui.boxLayout_create(layoutId .. "layout", "HORIZONTAL")
                 local label = gui.textView_create(layoutId .. "label", isEntry and tostring(id) or entity.name .. (isBuilt and _("BUILT") or ""), 300)
-                local icon = gui.imageView_create(layoutId .. "icon", 
+                local icon = gui.imageView_create(layoutId .. "icon",
                     isEntry and
-                    "ui/construction/street/underpass_entry_small.tga" or 
+                    "ui/construction/street/underpass_entry_small.tga" or
                     "ui/construction/station/rail/mus_small.tga"
                 )
                 local locateView = gui.imageView_create(layoutId .. "locate.icon", "ui/design/window-content/locate_small.tga")
                 local locateBtn = gui.button_create(layoutId .. "locate", locateView)
                 local checkboxView = gui.imageView_create(layoutId .. "checkbox.icon",
-                    func.contains(state.checkedItems, id) 
-                    and "ui/design/components/checkbox_small_valid.tga" 
+                    func.contains(state.checkedItems, id)
+                    and "ui/design/components/checkbox_small_valid.tga"
                     or "ui/design/components/checkbox_small_invalid.tga"
                 )
                 local checkboxBtn = gui.button_create(layoutId .. "checkbox", checkboxView)
@@ -81,7 +96,6 @@ local addEntry = function(id)
                         end
                     end
                 )
-                
                 local comp = gui.component_create(layoutId .. "comp", "")
                 comp:setLayout(hLayout)
                 state.linkEntries.layout:addItem(comp)
@@ -98,21 +112,21 @@ local showWindow = function()
         local desc = gui.textView_create("underpass.link.description", "")
         
         local hLayout = gui.boxLayout_create("underpass.link.hLayout", "HORIZONTAL")
-
+        
         hLayout:addItem(finishButton)
         hLayout:addItem(desc)
         local comp = gui.component_create("underpass.link.hComp", "")
         comp:setLayout(hLayout)
-
+        
         local vLayout = gui.boxLayout_create("underpass.link.vLayout", "VERTICAL")
         vLayout:addItem(comp)
-
+        
         state.linkEntries = gui.window_create("underpass.link.window", _("UNDERPASS_CON"), vLayout)
         state.linkEntries.desc = desc
         state.linkEntries.button = finishButton
         state.linkEntries.button.icon = finishIcon
         state.linkEntries.layout = vLayout
-
+        
         state.linkEntries:onClose(function()
             state.linkEntries = false
             state.addedItems = {}
@@ -133,8 +147,9 @@ local checkFn = function()
         local stations = func.filter(state.checkedItems, function(e) return func.contains(state.stations, e) end)
         local entries = func.filter(state.checkedItems, function(e) return func.contains(state.entries, e) end)
         local built = func.filter(state.checkedItems, function(e) return func.contains(state.built, e) end)
+
         if (#stations > 0) then
-            if (#stations > 8) then
+            if (#stations - #built + func.fold(built, 0, function(t, b) return (state.builtLevelCount[b] or 99) + t end) > 8) then
                 game.gui.setEnabled(state.linkEntries.button.id, false)
                 state.linkEntries.desc:setText(_("STATION_MAX_LIMIT"), 200)
             elseif (#entries > 0 or (#built > 0 and #stations > 1)) then
@@ -199,27 +214,11 @@ local shaderWarning = function()
     end
 end
 
-local decomp = function(params)
-    local group = {}
-    for slotId, m in pairs(params.modules) do
-        local groupId = (slotId - slotId % 10000) / 10000 % 10
-        if not group[groupId] then 
-            group[groupId] = {
-                modules = {},
-                params = m.params,
-                transf = m.transf
-            }
-        end
-        group[groupId].modules[slotId - groupId * 10000] = m
-    end
-    return group
-end
-
 local buildStation = function(entries, stations, built)
     local ref = built and #built > 0 and built[1] or stations[1]
     local vecRef, rotRef, _ = coor.decomposite(ref.transf)
     local iRot = coor.inv(cov(rotRef))
-
+    
     local groups = {}
     local entry = {}
     
@@ -239,12 +238,12 @@ local buildStation = function(entries, stations, built)
             end
         end
     end
-
+    
     for _, e in ipairs(stations) do
         table.insert(groups, {
-             modules = e.params.modules,
-             params = func.with(pure(e.params), {isFinalized = 1}),
-             transf = e.transf
+            modules = e.params.modules,
+            params = func.with(pure(e.params), {isFinalized = 1}),
+            transf = e.transf
         })
     end
     
@@ -275,7 +274,7 @@ local buildStation = function(entries, stations, built)
         e.transf = iRot * rot * coor.trans((vec - vecRef) .. iRot)
         modules[90000 + i] = e
     end
-
+    
     if (built and #built > 1) then local _ = built * pipe.range(2, #built) * pipe.map(pipe.select("id")) * pipe.forEach(game.interface.bulldoze) end
     local _ = stations * (built and pipe.noop() or pipe.range(2, #stations)) * pipe.map(pipe.select("id")) * pipe.forEach(game.interface.bulldoze)
     local _ = entries * pipe.map(pipe.select("id")) * pipe.forEach(game.interface.bulldoze)
@@ -291,6 +290,10 @@ local buildStation = function(entries, stations, built)
             })
     )
     if newId then
+        for _, b in ipairs(built) do
+            state.builtLevelCount[b.id] = nil
+        end
+        state.builtLevelCount[newId] = #groups
         state.items = func.filter(state.items, function(e) return not func.contains(state.checkedItems, e) end)
         state.checkedItems = {}
         state.stations = func.filter(state.stations, function(e) return func.contains(state.items, e) end)
@@ -350,6 +353,7 @@ local script = {
                 state.entries = {}
                 for i = 1, #data.entries do state.entries[i] = data.entries[i] end
             end
+            state.builtLevelCount = data.builtLevelCount or {}
             state.built = data.built or {}
         end
     end,
@@ -357,7 +361,7 @@ local script = {
         if (#state.items < 1) then
             closeWindow()
             state.addedItems = {}
-        elseif (#state.items - #state.built > 0) then
+        elseif (#state.items - #state.built > 0 or #state.built > 1) then
             showWindow()
             if (#state.addedItems < #state.items) then
                 for i = #state.addedItems + 1, #state.items do
@@ -389,36 +393,39 @@ local script = {
                     state.checkedItems[#state.checkedItems + 1] = param.id
                 end
             elseif (name == "construction") then
-                local entries = pipe.new 
-                    * state.checkedItems 
-                    * pipe.filter(function(e) return func.contains(state.entries, e) end) 
-                    * pipe.map(game.interface.getEntity) 
+                local entries = pipe.new
+                    * state.checkedItems
+                    * pipe.filter(function(e) return func.contains(state.entries, e) end)
+                    * pipe.map(game.interface.getEntity)
                     * pipe.filter(pipe.noop())
                 
-                local built = pipe.new 
-                    * state.checkedItems 
+                local built = pipe.new
+                    * state.checkedItems
                     * pipe.filter(function(e) return func.contains(state.built, e) end)
-                    * pipe.map(game.interface.getEntity) 
+                    * pipe.map(game.interface.getEntity)
                     * pipe.filter(pipe.noop())
                 
-                local stations = pipe.new 
-                    * state.checkedItems 
+                local stations = pipe.new
+                    * state.checkedItems
                     * pipe.filter(function(e) return func.contains(state.stations, e) and not func.contains(state.built, e) end)
-                    * pipe.map(game.interface.getEntity) 
+                    * pipe.map(game.interface.getEntity)
                     * pipe.filter(pipe.noop())
-
-                if (#stations == 0 and #entries > 1) then
+                
+                if (#built > 0 and (#entries + #stations) > 0) then
+                    buildStation(entries, stations, built)
+                elseif (#built > 1) then
+                    buildStation(entries, stations, built)
+                elseif (#stations == 0 and #entries > 1) then
                     buildUnderpass(entries)
                 elseif (#stations > 0 and #entries > 0) then
                     buildStation(entries, stations)
-                elseif (#built > 0 and (#entries + #stations) > 0) then
-                    buildStation(entries, stations, built)
                 end
             elseif (name == "select") then
                 if not func.contains(state.built, param.id) then
                     state.items[#state.items + 1] = param.id
                     state.stations[#state.stations + 1] = param.id
                     state.built[#state.built + 1] = param.id
+                    state.builtLevelCount[param.id] = param.nbGroup
                 end
             end
         end
@@ -428,16 +435,18 @@ local script = {
             local entity = game.interface.getEntity(param)
             if (entity.type == "STATION_GROUP") then
                 local lastVisited = false
+                local nbGroup = 0
                 local cons = game.interface.getEntities({pos = entity.pos, radius = 9999}, {type = "CONSTRUCTION", includeData = true, fileName = "station/rail/mus.con"})
                 for _, s in ipairs(entity.stations) do
                     for _, c in pairs(cons) do
                         if c.params and c.params.isFinalized == 1 and func.contains(c.stations, s) then
                             lastVisited = c.id
+                            nbGroup = #(func.filter(func.keys(decomp(c.params)), function(g) return g < 9 end))
                         end
                     end
                 end
                 if lastVisited then
-                    game.interface.sendScriptEvent("__underpassEvent__", "select", {id = lastVisited})
+                    game.interface.sendScriptEvent("__underpassEvent__", "select", {id = lastVisited, nbGroup = nbGroup})
                 end
             end
         end
