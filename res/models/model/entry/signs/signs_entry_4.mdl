@@ -77,7 +77,7 @@ function data()
             labelList = {
                 labels = {
                     {
-                        transf = coor.rotX(math.pi * 0.5) * coor.trans(coor.xyz(-0.5 * width - 0.25, -thickness, 0.125)),
+                        transf = coor.rotX(math.pi * 0.5) * coor.trans(coor.xyz(-0.5 * width - 0.25, -thickness * 0.5 - 0.01, 0.125)),
                         size = { width + 0.5, 0.35 },
                         type = "STATION_NAME",
                         alphaMode = "BLEND",
@@ -88,7 +88,7 @@ function data()
                         childId = "RootNode",
                     },
                     {
-                        transf = coor.rotX(math.pi * 0.5) * coor.rotZ(math.pi) * coor.trans(coor.xyz(0.5 * width + 0.25, thickness, 0.125)),
+                        transf = coor.rotX(math.pi * 0.5) * coor.rotZ(math.pi) * coor.trans(coor.xyz(0.5 * width + 0.25, thickness * 0.5 + 0.01, 0.125)),
                         size = { width + 0.5, 0.35 },
                         type = "STATION_NAME",
                         alphaMode = "BLEND",

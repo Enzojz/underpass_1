@@ -25,11 +25,9 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 --]]
-local laneutil = require "laneutil"
 local func = require "entry/func"
 
 local coor = {}
-coor.make = laneutil.makeLanes
 
 local math = math
 local sin = math.sin
@@ -37,6 +35,7 @@ local cos = math.cos
 local sqrt = math.sqrt
 local rad = math.rad
 local unpack = table.unpack
+local insert = table.insert
 
 local vecXyMeta = {
     __add = function(lhs, rhs)
@@ -204,30 +203,31 @@ function coor.inv(m)
     local dX = coor.det(m)
     
     local miX = coor.minor(m)
-    local mXI = func.mapFlatten(func.seq(1, 4),
-        function(l)
-            return func.seqMap({1, 4}, function(c)
-                return ((l + c) % 2 == 0 and 1 or -1) * coor.det(miX(c, l)) / dX
-            end)
-        end)
-    
-        return coor.I() * mXI
+    local mXI = {}
+
+    for l = 1, 4 do
+        for c = 1, 4 do
+            insert(mXI, ((l + c) % 2 == 0 and 1 or -1) * coor.det(miX(c, l)) / dX)
+        end
+    end
+
+    return coor.I() * mXI
 end
 
 function coor.inv3(m)
     local dX = coor.det(m)
     
     local miX = coor.minor(m)
-    local mXI = func.mapFlatten(func.seq(1, 3),
-        function(l)
-            return func.seqMap({1, 3}, function(c)
-                return ((l + c) % 2 == 0 and 1 or -1) * coor.det(miX(c, l)) / dX
-            end)
-        end)
     
+    local mXI = {}
+    for l = 1, 3 do
+        for c = 1, 3 do
+            insert(mXI, ((l + c) % 2 == 0 and 1 or -1) * coor.det(miX(c, l)) / dX)
+        end
+    end
+
     return mXI
 end
-
 
 function coor.decomposite(m)
     local vecTrans = coor.xyz(m[13], m[14], m[15])
@@ -378,7 +378,12 @@ function coor.flipZ()
 end
 
 function coor.trans(vec)
-    return coor.transX(vec.x) * coor.transY(vec.y) * coor.transZ(vec.z)
+    return init * {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        vec.x, vec.y, vec.z, 1
+    }
 end
 
 function coor.transX(dx)
@@ -511,41 +516,6 @@ function coor.shearZoY(s)
         0, 0, 1, 0,
         0, 0, 0, 1
     }
-end
-
-function coor.rotate(edge, mt0, mtr, mt1)
-    return coor.applyEdge(coor.mul(mt0, mtr, mt1), mtr)(edge)
-end
-
-function coor.translateAndBack(center)
-    return coor.trans(coor.o - center),
-        coor.trans(center)
-end
-
-
-function coor.centered(op, rad, center)
-    local mt0, mt1 = coor.translateAndBack(center)
-    local mtr = op(rad)
-    return mt0 * mtr * mt1
-end
-
-function coor.rotateEdgeByZ(degree, center, edge)
-    local mt0, mt1 = coor.translateAndBack(center)
-    local mtr = coor.rotZ(rad(degree))
-    return coor.rotate(edge, mt0, mtr, mt1)
-end
-
-function coor.rotateEdgeByX(rad, center, edge)
-    local mt0, mt1 = coor.translateAndBack(center)
-    local mtr = coor.rotX(rad)
-    return coor.rotate(edge, mt0, mtr, mt1)
-end
-
-function coor.setHeight(height, edge)
-    local mz = coor.transZ(height)
-    local pt, vec = coor.edge2Vec(edge)
-    local newPt = coor.apply(pt, mz)
-    return coor.vec2Edge(newPt, vec)
 end
 
 return coor

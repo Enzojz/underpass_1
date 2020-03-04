@@ -62,6 +62,7 @@ function data()
             ["MENU_WIDTH"] = "Width(m)",
             ["MENU_NAME"] = "Underpass/Undergroudn Entry",
             ["MENU_DESC"] = "An underpass or underground station entry",
+            ["BUILT"] = " (modifiable)",
             ["UNDERPASS_CON"] = "Underpass Construction",
             ["STATION_CON"] = "Underground Station Construction",
             ["SHADER_WARNING"] = [["Underpass" mod requires "Shader Enhancement" mod, you will see strange texture without this mod.]],
@@ -82,7 +83,9 @@ Please keep in mind that the game pathfinding algorithm
 takes always the shortest path, you need to design carefully
 the entry layout to make the pathes short.]],
             ["UNDERPASS_NEED_ENTRY"] = 
-[[At least two entries are needed to finalize an underpass.]]
+[[At least two entries are needed to finalize an underpass.
+If you want to modify an existing station, click it and
+check the checkbox before the icon.]]
         },
         zh_CN = {
             ["name"] = "人行地道",
@@ -96,6 +99,7 @@ the entry layout to make the pathes short.]],
             ["MENU_WIDTH"] = "宽度(米)",
             ["MENU_NAME"] = "地道/地下车站入口",
             ["MENU_DESC"] = "通往人行地道或地下车站的入口.",
+            ["BUILT"] = " (可修改)",
             ["SHADER_WARNING"] = [["人行地道"模组需要"着色器增强"模组的支持方可运行，否则您将看到不正常的贴图]],
             ["Warning"] = "警告",
             ["UNDERPASS_CON"] = "建造人行地道",
@@ -115,7 +119,9 @@ the entry layout to make the pathes short.]],
 注意游戏的择路算法是最短路径，为了确保
 建设的地道被使用，请仔细规划地道布局]],
             ["UNDERPASS_NEED_ENTRY"] = 
-[[每条人行地道至少需要一对出入口。]]
+[[每条人行地道至少需要一对出入口。
+如果您希望修改一座已建成车站，点击车站
+主体，然后在下方列表的圆圈中选中该车站。]]
         },
         zh_TW = {            
             ["name"] = "人行地道",
@@ -130,7 +136,8 @@ the entry layout to make the pathes short.]],
             ["MENU_NAME"] = "地道/地下車站入口",
             ["MENU_DESC"] = "通往人行地道或地下車站的入口.",
             ["SHADER_WARNING"] = [["人行地道"模組需要"著色器增強"模組的支持方可運行，否則您將看到不正常的貼圖]],
-            ["Warning"] = "警告",
+            ["Warning"] = "警告",            
+            ["BUILT"] = " (可修改)",
             ["UNDERPASS_CON"] = "建造人行地道",
             ["STATION_CON"] = "建造地下車站",
             ["STATION_MAX_LIMIT"] = 
@@ -148,7 +155,9 @@ the entry layout to make the pathes short.]],
 注意遊戲的擇路演算法是最短路徑，為了確保
 建設的地道被使用，請仔細規劃地道佈局]],
             ["UNDERPASS_NEED_ENTRY"] = 
-[[每條人行地道至少需要一對出入口。]]
+[[每條人行地道至少需要一對出入口。
+如果您希望修改一座已建成車站，點擊車站
+主體，然後在下方列表的圓圈中選中該車站。]]
         }
     }
 end
