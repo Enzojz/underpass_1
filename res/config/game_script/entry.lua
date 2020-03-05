@@ -71,15 +71,27 @@ local addEntry = function(id)
                 local locateBtn = gui.button_create(layoutId .. "locate", locateView)
                 local checkboxView = gui.imageView_create(layoutId .. "checkbox.icon",
                     func.contains(state.checkedItems, id)
-                    and "ui/design/components/checkbox_small_valid.tga"
-                    or "ui/design/components/checkbox_small_invalid.tga"
+                    and "ui/design/components/checkbox_valid.tga"
+                    or "ui/design/components/checkbox_invalid.tga"
                 )
                 local checkboxBtn = gui.button_create(layoutId .. "checkbox", checkboxView)
+
+
                 hLayout:addItem(locateBtn)
                 hLayout:addItem(checkboxBtn)
                 hLayout:addItem(icon)
                 hLayout:addItem(label)
                 
+
+                if (isBuilt) then
+                    local delView = gui.imageView_create(layoutId .. "del.icon", "ui/button/xsmall/cancel.tga")
+                    local delBtn = gui.button_create(layoutId .. "del", delView)
+                    delBtn:onClick(function()
+                        game.interface.sendScriptEvent("__underpassEvent__", "remove", {id})
+                    end)
+                    hLayout:addItem(delBtn)
+                end
+
                 locateBtn:onClick(function()
                     local pos = entity.position
                     game.gui.setCamera({pos[1], pos[2], pos[3], -4.77, 0.2})
@@ -88,10 +100,10 @@ local addEntry = function(id)
                 checkboxBtn:onClick(
                     function()
                         if (func.contains(state.checkedItems, id)) then
-                            checkboxView:setImage("ui/design/components/checkbox_small_invalid.tga")
+                            checkboxView:setImage("ui/design/components/checkbox_invalid.tga")
                             game.interface.sendScriptEvent("__underpassEvent__", "uncheck", {id = id})
                         else
-                            checkboxView:setImage("ui/design/components/checkbox_small_valid.tga")
+                            checkboxView:setImage("ui/design/components/checkbox_valid.tga")
                             game.interface.sendScriptEvent("__underpassEvent__", "check", {id = id})
                         end
                     end
