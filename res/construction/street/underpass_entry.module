@@ -169,6 +169,7 @@ function data()
             
             result.groundFaces[#result.groundFaces + 1] = {face = holeFace, modes = {{type = "FILL", key = "hole.lua"}}}
             -- result.groundFaces[#result.groundFaces + 1] = {face = terrainFace, modes = {{type = "FILL", key = "town_concrete.lua"}}}
+            -- result.groundFaces[#result.groundFaces + 1] = {face = terrainFace, modes = {{type = "FILL", key = "town_concrete.lua"}}}
             -- result.groundFaces[#result.groundFaces + 1] = {face = terrainFace, modes = {{type = "STROKE_OUTER", key = "town_concrete_border.lua"}}}
         end,
         

@@ -290,8 +290,10 @@ local buildStation = function(entries, stations, built)
             })
     )
     if newId then
-        for _, b in ipairs(built) do
-            state.builtLevelCount[b.id] = nil
+        if (built and #built > 1) then
+            for _, b in ipairs(built) do
+                state.builtLevelCount[b.id] = nil
+            end
         end
         state.builtLevelCount[newId] = #groups
         state.items = func.filter(state.items, function(e) return not func.contains(state.checkedItems, e) end)

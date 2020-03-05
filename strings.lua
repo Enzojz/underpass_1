@@ -8,10 +8,14 @@ Usage:
 * This mod requires "Shader enhancement" mod to render textures correctly.
 
 Changelog:
-1.1
-- Adaption of underground station
+1.3
+- Support to modify finished underground station
+- Correction of sign name position
+- Remastered icons
 1.2
 - Support of station name sign
+1.1
+- Adaption of underground station
 ]]
 
 local descCN = [[本模组可自由建造人行地道
