@@ -447,7 +447,7 @@ local script = {
     guiHandleEvent = function(id, name, param)
         if (name == "select") then
             local entity = game.interface.getEntity(param)
-            if (entity.type == "STATION_GROUP") then
+            if (entity and entity.type == "STATION_GROUP") then
                 local lastVisited = false
                 local nbGroup = 0
                 local cons = game.interface.getEntities({pos = entity.pos, radius = 9999}, {type = "CONSTRUCTION", includeData = true, fileName = "station/rail/mus.con"})
