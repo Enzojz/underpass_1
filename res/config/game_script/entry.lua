@@ -1,6 +1,7 @@
 local pipe = require "entry/pipe"
 local func = require "entry/func"
 local coor = require "entry/coor"
+local dump = require "luadump"
 
 local state = {
     warningShaderMod = false,
@@ -14,7 +15,9 @@ local state = {
     
     linkEntries = false,
     built = {},
-    builtLevelCount = {}
+    builtLevelCount = {},
+
+    pos = false
 }
 
 local cov = function(m)
@@ -75,23 +78,13 @@ local addEntry = function(id)
                     or "ui/design/components/checkbox_invalid.tga"
                 )
                 local checkboxBtn = gui.button_create(layoutId .. "checkbox", checkboxView)
-
-
+                
+                
                 hLayout:addItem(locateBtn)
                 hLayout:addItem(checkboxBtn)
                 hLayout:addItem(icon)
                 hLayout:addItem(label)
                 
-
-                if (isBuilt) then
-                    local delView = gui.imageView_create(layoutId .. "del.icon", "ui/button/xsmall/cancel.tga")
-                    local delBtn = gui.button_create(layoutId .. "del", delView)
-                    delBtn:onClick(function()
-                        game.interface.sendScriptEvent("__underpassEvent__", "remove", {id})
-                    end)
-                    hLayout:addItem(delBtn)
-                end
-
                 locateBtn:onClick(function()
                     local pos = entity.position
                     game.gui.setCamera({pos[1], pos[2], pos[3], -4.77, 0.2})
@@ -142,6 +135,7 @@ local showWindow = function()
         state.linkEntries:onClose(function()
             state.linkEntries = false
             state.addedItems = {}
+            game.interface.sendScriptEvent("__underpassEvent__", "window.close", {})
         end)
         
         finishButton:onClick(function()
@@ -150,7 +144,8 @@ local showWindow = function()
                 game.interface.sendScriptEvent("__underpassEvent__", "construction", {})
             end
         end)
-        game.gui.window_setPosition(state.linkEntries.id, 200, 200)
+        
+        game.gui.window_setPosition(state.linkEntries.id, table.unpack(state.pos and {state.pos[1], state.pos[2]} or {200, 200}))
     end
 end
 
@@ -159,7 +154,7 @@ local checkFn = function()
         local stations = func.filter(state.checkedItems, function(e) return func.contains(state.stations, e) end)
         local entries = func.filter(state.checkedItems, function(e) return func.contains(state.entries, e) end)
         local built = func.filter(state.checkedItems, function(e) return func.contains(state.built, e) end)
-
+        
         if (#stations > 0) then
             if (#stations - #built + func.fold(built, 0, function(t, b) return (state.builtLevelCount[b] or 99) + t end) > 8) then
                 game.gui.setEnabled(state.linkEntries.button.id, false)
@@ -192,7 +187,7 @@ end
 local closeWindow = function()
     if (state.linkEntries) then
         local w = state.linkEntries
-        state.linkEntries = false
+        state.pos = game.gui.getContentRect(w.id)
         w:close()
     end
 end
@@ -313,7 +308,6 @@ local buildStation = function(entries, stations, built)
         state.stations = func.filter(state.stations, function(e) return func.contains(state.items, e) end)
         state.entries = func.filter(state.entries, function(e) return func.contains(state.items, e) end)
         state.built = func.filter(state.built, function(e) return func.contains(state.items, e) end)
-        closeWindow()
     end
 end
 
@@ -342,8 +336,8 @@ local buildUnderpass = function(entries)
             }))
     if newId then
         state.items = func.filter(state.items, function(e) return not func.contains(state.checkedItems, e) end)
+        state.entries = func.filter(state.entries, function(e) return func.contains(state.items, e) end)
         state.checkedItems = {}
-        closeWindow()
     end
 end
 
@@ -351,40 +345,34 @@ local script = {
     save = function() return state end,
     load = function(data)
         if data then
-            if (data.items and #data.items ~= #state.items) then
-                state.items = {}
-                for i = 1, #data.items do state.items[i] = data.items[i] end
-            end
-            if (data.checkedItems and #data.checkedItems ~= #state.checkedItems) then
-                state.checkedItems = {}
-                for i = 1, #data.checkedItems do state.checkedItems[i] = data.checkedItems[i] end
-            end
-            if (data.stations and #data.stations ~= #state.stations) then
-                state.stations = {}
-                for i = 1, #data.stations do state.stations[i] = data.stations[i] end
-            end
-            if (data.entries and #data.entries ~= #state.entries) then
-                state.entries = {}
-                for i = 1, #data.entries do state.entries[i] = data.entries[i] end
-            end
+            state.items = data.items
+            state.checkedItems = data.checkedItems
+            state.stations = data.stations
+            state.entries = data.entries
             state.builtLevelCount = data.builtLevelCount or {}
             state.built = data.built or {}
         end
     end,
     guiUpdate = function()
-        if (#state.items < 1) then
-            closeWindow()
-            state.addedItems = {}
-        elseif (#state.items - #state.built > 0 or #state.built > 1) then
-            showWindow()
-            if (#state.addedItems < #state.items) then
-                for i = #state.addedItems + 1, #state.items do
-                    addEntry(state.items[i])
-                end
-            elseif (#state.addedItems > #state.items) then
+        if state.linkEntries then
+            if (#state.items < 1) then
                 closeWindow()
+                state.addedItems = {}
+            else
+                if (#state.addedItems < #state.items) then
+                    for i = #state.addedItems + 1, #state.items do
+                        addEntry(state.items[i])
+                    end
+                elseif (#state.addedItems > #state.items) then
+                    closeWindow()
+                    state.showWindow = true
+                end
+                checkFn()
             end
+        elseif (state.showWindow and #state.items - #state.built > 0) then
+            showWindow()
             checkFn()
+            state.showWindow = false
         end
     end,
     handleEvent = function(src, id, name, param)
@@ -441,13 +429,21 @@ local script = {
                     state.built[#state.built + 1] = param.id
                     state.builtLevelCount[param.id] = param.nbGroup
                 end
+            elseif (name == "window.close") then
+                state.items = func.filter(state.items, function(i) return not func.contains(state.built, i) or func.contains(state.checkedItems, i) end)
+                state.built = func.filter(state.built, function(b) return func.contains(state.checkedItems, b) end)
+                dump()(state.items, state.built)
             end
         end
     end,
     guiHandleEvent = function(id, name, param)
         if (name == "select") then
             local entity = game.interface.getEntity(param)
-            if (entity and entity.type == "STATION_GROUP") then
+            if (entity and entity.type == "CONSTRUCTION" and entity.fileName == "street/underpass_entry.con") then
+                if func.contains(state.items, entity.id) then
+                    showWindow()
+                end
+            elseif (entity and entity.type == "STATION_GROUP") then
                 local lastVisited = false
                 local nbGroup = 0
                 local cons = game.interface.getEntities({pos = entity.pos, radius = 9999}, {type = "CONSTRUCTION", includeData = true, fileName = "station/rail/mus.con"})
@@ -456,6 +452,8 @@ local script = {
                         if c.params and c.params.isFinalized == 1 and func.contains(c.stations, s) then
                             lastVisited = c.id
                             nbGroup = #(func.filter(func.keys(decomp(c.params)), function(g) return g < 9 end))
+                        elseif func.contains(state.items, c.id) then
+                            showWindow()
                         end
                     end
                 end
@@ -480,6 +478,7 @@ local script = {
                     if (con.fileName == [[street/underpass_entry.con]]) then
                         shaderWarning()
                         game.interface.sendScriptEvent("__underpassEvent__", "new", {id = param.result[1], isEntry = true})
+                        state.showWindow = true
                     end
                 end
             end

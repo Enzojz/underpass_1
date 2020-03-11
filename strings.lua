@@ -8,6 +8,8 @@ Usage:
 * This mod requires "Shader enhancement" mod to render textures correctly.
 
 Changelog:
+1.4
+- Redesigned the dialogue logic for being player-friendly
 1.3
 - Support to modify finished underground station
 - Correction of sign name position
@@ -28,6 +30,8 @@ local descCN = [[本模组可自由建造人行地道
 * 本模组需要“着色器增强”模组方可正确渲染
 
 更新日志:
+1.4
+- 重新设计了对话框逻辑对玩家更友好
 1.3
 - 增加修改已完成的地下车站的能力
 - 修正了站台名上文字的位置错误
@@ -49,6 +53,8 @@ local descTC = [[本模組可自由建造人行地道
 * 本模組需要“著色器增強”模組方可正確渲染
 
 更新日誌:
+1.4
+- 重新設計了對話方塊邏輯對玩家更友好
 1.3
 - 增加修改已完成的地下車站的能力
 - 修正了月臺名上文字的位置錯誤
