@@ -1,7 +1,6 @@
 local pipe = require "entry/pipe"
 local func = require "entry/func"
 local coor = require "entry/coor"
-local dump = require "luadump"
 
 local state = {
     warningShaderMod = false,
@@ -342,13 +341,23 @@ local buildUnderpass = function(entries)
 end
 
 local script = {
-    save = function() return state end,
+    save = function()
+        if not state then state = {} end
+        if not state.items then state.items = {} end
+        if not state.checkedItems then state.checkedItems = {} end
+        if not state.stations then state.stations = {} end
+        if not state.entries then state.entries = {} end
+        if not state.built then state.built = {} end
+        if not state.builtLevelCount then state.builtLevelCount = {} end
+
+        return state
+    end,
     load = function(data)
         if data then
-            state.items = data.items
-            state.checkedItems = data.checkedItems
-            state.stations = data.stations
-            state.entries = data.entries
+            state.items = data.items or {}
+            state.checkedItems = data.checkedItems or {}
+            state.stations = data.stations or {}
+            state.entries = data.entries or {}
             state.builtLevelCount = data.builtLevelCount or {}
             state.built = data.built or {}
         end
@@ -384,6 +393,12 @@ local script = {
                 state.stations = func.filter(state.stations, function(e) return not func.contains(param, e) end)
                 state.built = func.filter(state.built, function(e) return not func.contains(param, e) end)
             elseif (name == "new") then
+                -- local e = game.interface.getEntity(param.id)
+                -- game.interface.upgradeConstruction(
+                --     param.id,
+                --     e.fileName,
+                --     func.with(pure(e.params), {modules = e.modules, isNotPreview = true})
+                -- )
                 state.items[#state.items + 1] = param.id
                 state.checkedItems[#state.checkedItems + 1] = param.id
                 if (param.isEntry) then state.entries[#state.entries + 1] = param.id
@@ -432,7 +447,6 @@ local script = {
             elseif (name == "window.close") then
                 state.items = func.filter(state.items, function(i) return not func.contains(state.built, i) or func.contains(state.checkedItems, i) end)
                 state.built = func.filter(state.built, function(b) return func.contains(state.checkedItems, b) end)
-                dump()(state.items, state.built)
             end
         end
     end,
