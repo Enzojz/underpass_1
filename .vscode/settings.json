@@ -1,0 +1,8 @@
+{
+	"files.associations": {
+		"*.con": "lua",
+		"*.mdl": "lua",
+		"*.module": "lua",
+		"*.mtl": "lua"
+	}
+}
