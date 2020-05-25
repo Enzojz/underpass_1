@@ -1,7 +1,14 @@
 {
+    "files.associations": {
+        "*.con": "lua",
+        "*.mdl": "lua",
+        "*.module": "lua",
+        "*.mtl": "lua"
+    },
     "Lua.diagnostics.globals": [
-        "gui",
         "_",
-        "game"
+        "game",
+        "gui",
+        "data"
     ]
 }

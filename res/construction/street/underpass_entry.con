@@ -31,14 +31,14 @@ function data()
     local createTemplateFn = function(_)
         local result = {
             [1] = "street/underpass_entry.module",
-        }
-        
+        }       
         return result
     end
     
     local upgradeFn = function(_) end
     
     local updateFn = function(params)
+
         local result = {
             entryConnectors = {},
             colliders = {},
