@@ -1,6 +1,7 @@
 local pipe = require "entry/pipe"
 local func = require "entry/func"
 local coor = require "entry/coor"
+local dump = require "luadump"
 
 local state = {
     warningShaderMod = false,
@@ -12,11 +13,17 @@ local state = {
     stations = {},
     entries = {},
     
-    linkEntries = false,
+    windows = {
+        window = false,
+        desc = false,
+        icon = false,
+        button = false,
+        list = false
+    },
     built = {},
     builtLevelCount = {},
-
-    pos = false
+    
+    fn = {}
 }
 
 local cov = function(m)
@@ -53,56 +60,73 @@ local decomp = function(params)
     return group
 end
 
+local removeEntry = function(id)
+    if (state.windows.window) then
+        local comp = api.gui.util.getById(("underpass.entities.%d"):format(id))
+        if (comp) then
+            state.windows.list:removeItem(comp)
+        end
+        state.addedItems = func.filter(state.addedItems, function(e) return e ~= id end) 
+        state.checkedItems = func.filter(state.checkedItems, function(e) return e ~= id end) 
+    end
+end
+
 local addEntry = function(id)
-    if (state.linkEntries) then
+    if (state.windows.window) then
         local entity = game.interface.getEntity(id)
         if (entity) then
             local isEntry = entity.fileName == "street/underpass_entry.con"
             local isStation = entity.fileName == "station/rail/mus.con"
             local isBuilt = isStation and entity.params and entity.params.isFinalized == 1
             if (isEntry or isStation) then
-                local layoutId = "underpass.link." .. tostring(id) .. "."
-                local hLayout = gui.boxLayout_create(layoutId .. "layout", "HORIZONTAL")
-                local label = gui.textView_create(layoutId .. "label", isEntry and tostring(id) or entity.name .. (isBuilt and _("BUILT") or ""), 300)
-                local icon = gui.imageView_create(layoutId .. "icon",
+                local check = api.gui.comp.CheckBox.new(
+                    "",
+                    "ui/design/components/checkbox_invalid.tga",
+                    "ui/design/components/checkbox_valid.tga"
+                )
+
+                local lable = api.gui.comp.TextView.new(isEntry and tostring(id) or entity.name .. (isBuilt and _("BUILT") or ""))
+
+                local icon = api.gui.comp.ImageView.new(
                     isEntry and
                     "ui/construction/street/underpass_entry_small.tga" or
                     "ui/construction/station/rail/mus_small.tga"
                 )
-                local locateView = gui.imageView_create(layoutId .. "locate.icon", "ui/design/window-content/locate_small.tga")
-                local locateBtn = gui.button_create(layoutId .. "locate", locateView)
-                local checkboxView = gui.imageView_create(layoutId .. "checkbox.icon",
-                    func.contains(state.checkedItems, id)
-                    and "ui/design/components/checkbox_valid.tga"
-                    or "ui/design/components/checkbox_invalid.tga"
-                )
-                local checkboxBtn = gui.button_create(layoutId .. "checkbox", checkboxView)
+                local locateView = api.gui.comp.ImageView.new("ui/design/window-content/locate_small.tga")
+                local locateBtn = api.gui.comp.Button.new(locateView, true)
                 
+                check:setGravity(0, 0.5)
+                locateBtn:setGravity(0, 0.5)
+                icon:setGravity(0, 0.5)
+                lable:setGravity(-1, 0.5)
                 
-                hLayout:addItem(locateBtn)
-                hLayout:addItem(checkboxBtn)
-                hLayout:addItem(icon)
-                hLayout:addItem(label)
+                local layout = api.gui.layout.BoxLayout.new("HORIZONTAL")
+                local comp = api.gui.comp.Component.new("")
+                comp:setLayout(layout)
+                
+                check:setId(("underpass.check.%d"):format(id))
+                comp:setId(("underpass.entities.%d"):format(id))
+                
+                layout:addItem(locateBtn)
+                layout:addItem(check)
+                layout:addItem(icon)
+                layout:addItem(lable)
                 
                 locateBtn:onClick(function()
                     local pos = entity.position
                     game.gui.setCamera({pos[1], pos[2], pos[3], -4.77, 0.2})
                 end)
                 
-                checkboxBtn:onClick(
+                check:onToggle(
                     function()
                         if (func.contains(state.checkedItems, id)) then
-                            checkboxView:setImage("ui/design/components/checkbox_invalid.tga")
-                            game.interface.sendScriptEvent("__underpassEvent__", "uncheck", {id = id})
+                            table.insert(state.fn, function() game.interface.sendScriptEvent("__underpassEvent__", "uncheck", {id = id}) end)
                         else
-                            checkboxView:setImage("ui/design/components/checkbox_valid.tga")
-                            game.interface.sendScriptEvent("__underpassEvent__", "check", {id = id})
+                            table.insert(state.fn, function() game.interface.sendScriptEvent("__underpassEvent__", "check", {id = id}) end)
                         end
                     end
                 )
-                local comp = gui.component_create(layoutId .. "comp", "")
-                comp:setLayout(hLayout)
-                state.linkEntries.layout:addItem(comp)
+                state.windows.list:addItem(comp)
                 state.addedItems[#state.addedItems + 1] = id
             end
         end
@@ -110,84 +134,79 @@ local addEntry = function(id)
 end
 
 local showWindow = function()
-    if (not state.linkEntries and #state.items > 0) then
-        local finishIcon = gui.imageView_create("underpass.link.icon", "ui/construction/street/underpass_entry_op.tga")
-        local finishButton = gui.button_create("underpass.link.button", finishIcon)
-        local desc = gui.textView_create("underpass.link.description", "")
-        
-        local hLayout = gui.boxLayout_create("underpass.link.hLayout", "HORIZONTAL")
+    if (not state.windows.window and #state.items > 0) then
+        local finishIcon = api.gui.comp.ImageView.new("ui/construction/street/underpass_entry_op.tga")
+        local finishButton = api.gui.comp.Button.new(finishIcon, true)
+        local desc = api.gui.comp.TextView.new("")
+        local hLayout = api.gui.layout.BoxLayout.new("HORIZONTAL")
         
         hLayout:addItem(finishButton)
         hLayout:addItem(desc)
-        local comp = gui.component_create("underpass.link.hComp", "")
-        comp:setLayout(hLayout)
         
-        local vLayout = gui.boxLayout_create("underpass.link.vLayout", "VERTICAL")
-        vLayout:addItem(comp)
+        local hcomp = api.gui.comp.Component.new("")
+        hcomp:setLayout(hLayout)
         
-        state.linkEntries = gui.window_create("underpass.link.window", _("UNDERPASS_CON"), vLayout)
-        state.linkEntries.desc = desc
-        state.linkEntries.button = finishButton
-        state.linkEntries.button.icon = finishIcon
-        state.linkEntries.layout = vLayout
+        local vLayout = api.gui.layout.BoxLayout.new("VERTICAL")
+        local wcomp = api.gui.comp.Component.new("")
+        wcomp:setLayout(vLayout)
         
-        state.linkEntries:onClose(function()
-            state.linkEntries = false
-            state.addedItems = {}
-            game.interface.sendScriptEvent("__underpassEvent__", "window.close", {})
-        end)
+        state.windows.window = api.gui.comp.Window.new("", wcomp)
+        state.windows.window:setId("underpass.window")
+        
+        vLayout:addItem(hcomp)
+        
+        state.windows.window:onClose(function()state.linkEntries:setVisible(false, false) end)
         
         finishButton:onClick(function()
-            if (state.linkEntries) then
-                state.linkEntries:close()
-                game.interface.sendScriptEvent("__underpassEvent__", "construction", {})
+            if (state.windows.window) then
+                table.insert(state.fn, function()
+                    state.windows.window:close()
+                    game.interface.sendScriptEvent("__underpassEvent__", "construction", {})
+                end)
             end
         end)
         
-        game.gui.window_setPosition(state.linkEntries.id, table.unpack(state.pos and {state.pos[1], state.pos[2]} or {200, 200}))
+        state.windows.button = finishButton
+        state.windows.icon = finishIcon
+        state.windows.desc = desc
+        state.windows.list = vLayout
+        
+        game.gui.window_setPosition("underpass.window", 200, 200)
     end
 end
 
 local checkFn = function()
-    if (state.linkEntries) then
+    if (state.windows.window) then
         local stations = func.filter(state.checkedItems, function(e) return func.contains(state.stations, e) end)
         local entries = func.filter(state.checkedItems, function(e) return func.contains(state.entries, e) end)
         local built = func.filter(state.checkedItems, function(e) return func.contains(state.built, e) end)
         
         if (#stations > 0) then
             if (#stations - #built + func.fold(built, 0, function(t, b) return (state.builtLevelCount[b] or 99) + t end) > 8) then
-                game.gui.setEnabled(state.linkEntries.button.id, false)
-                state.linkEntries.desc:setText(_("STATION_MAX_LIMIT"), 200)
+                state.windows.button:setEnabled(false)
+                state.windows.desc:setText(_("STATION_MAX_LIMIT"))
             elseif (#entries > 0 or (#built > 0 and #stations > 1)) then
-                game.gui.setEnabled(state.linkEntries.button.id, true)
-                state.linkEntries.desc:setText(_("STATION_CAN_FINALIZE"), 200)
+                state.windows.button:setEnabled(true)
+                state.windows.desc:setText(_("STATION_CAN_FINALIZE"))
             else
-                game.gui.setEnabled(state.linkEntries.button.id, false)
-                state.linkEntries.desc:setText(_("STATION_NEED_ENTRY"), 200)
+                state.windows.button:setEnabled(false)
+                state.windows.desc:setText(_("STATION_NEED_ENTRY"))
             end
-            state.linkEntries.button.icon:setImage("ui/construction/station/rail/mus_op.tga")
-            state.linkEntries:setTitle(_("STATION_CON"))
+            state.windows.icon:setImage("ui/construction/station/rail/mus_op.tga", false)
+            state.windows.window:setTitle(_("STATION_CON"))
         elseif (#stations == 0) then
             if (#entries > 1) then
-                game.gui.setEnabled(state.linkEntries.button.id, true)
-                state.linkEntries.desc:setText(_("UNDERPASS_CAN_FINALIZE"), 200)
+                state.windows.button:setEnabled(true)
+                state.windows.desc:setText(_("UNDERPASS_CAN_FINALIZE"))
             else
-                game.gui.setEnabled(state.linkEntries.button.id, false)
-                state.linkEntries.desc:setText(_("UNDERPASS_NEED_ENTRY"), 200)
+                state.windows.button:setEnabled(false)
+                state.windows.desc:setText(_("UNDERPASS_NEED_ENTRY"))
             end
-            state.linkEntries.button.icon:setImage("ui/construction/street/underpass_entry_op.tga")
-            state.linkEntries:setTitle(_("UNDERPASS_CON"))
+            state.windows.icon:setImage("ui/construction/street/underpass_entry_op.tga", false)
+            state.windows.window:setTitle(_("UNDERPASS_CON"))
         else
-            game.gui.setEnabled(state.linkEntries.button.id, false)
+            state.windows.button:setEnabled(false)
         end
-    end
-end
-
-local closeWindow = function()
-    if (state.linkEntries) then
-        local w = state.linkEntries
-        state.pos = game.gui.getContentRect(w.id)
-        w:close()
     end
 end
 
@@ -349,7 +368,7 @@ local script = {
         if not state.entries then state.entries = {} end
         if not state.built then state.built = {} end
         if not state.builtLevelCount then state.builtLevelCount = {} end
-
+        
         return state
     end,
     load = function(data)
@@ -363,18 +382,34 @@ local script = {
         end
     end,
     guiUpdate = function()
-        if state.linkEntries then
+        for _, f in ipairs(state.fn) do f() end
+        state.fn = {}
+
+        if state.windows.window then
             if (#state.items < 1) then
-                closeWindow()
-                state.addedItems = {}
+                state.windows.window:close()
             else
                 if (#state.addedItems < #state.items) then
                     for i = #state.addedItems + 1, #state.items do
                         addEntry(state.items[i])
                     end
                 elseif (#state.addedItems > #state.items) then
-                    closeWindow()
-                    state.showWindow = true
+                    local remove = func.filter(state.addedItems, function(i) return not func.contains(state.items, i) end)
+                    for _, id in ipairs(remove) do
+                        removeEntry(id)
+                    end
+                else
+                local check = {}
+                    for _, id in ipairs(state.items) do
+                        check[id] = false
+                    end
+                    for _, id in ipairs(state.checkedItems) do
+                        check[id] = true
+                    end
+                    for id, c in pairs(check) do
+                        local check = api.gui.util.getById(("underpass.check.%d"):format(id))
+                        check:setSelected(c, false)
+                    end
                 end
                 checkFn()
             end
