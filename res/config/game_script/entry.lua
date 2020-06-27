@@ -63,11 +63,12 @@ end
 local removeEntry = function(id)
     if (state.windows.window) then
         local comp = api.gui.util.getById(("underpass.entities.%d"):format(id))
-        if (comp) then
+        if comp then
             state.windows.list:removeItem(comp)
+            comp:destroy()
         end
-        state.addedItems = func.filter(state.addedItems, function(e) return e ~= id end) 
-        state.checkedItems = func.filter(state.checkedItems, function(e) return e ~= id end) 
+        state.addedItems = func.filter(state.addedItems, function(e) return e ~= id end)
+        state.checkedItems = func.filter(state.checkedItems, function(e) return e ~= id end)
     end
 end
 
@@ -84,9 +85,8 @@ local addEntry = function(id)
                     "ui/design/components/checkbox_invalid.tga",
                     "ui/design/components/checkbox_valid.tga"
                 )
-
                 local lable = api.gui.comp.TextView.new(isEntry and tostring(id) or entity.name .. (isBuilt and _("BUILT") or ""))
-
+                
                 local icon = api.gui.comp.ImageView.new(
                     isEntry and
                     "ui/construction/street/underpass_entry_small.tga" or
@@ -120,9 +120,9 @@ local addEntry = function(id)
                 check:onToggle(
                     function()
                         if (func.contains(state.checkedItems, id)) then
-                            table.insert(state.fn, function() game.interface.sendScriptEvent("__underpassEvent__", "uncheck", {id = id}) end)
+                            table.insert(state.fn, function()game.interface.sendScriptEvent("__underpassEvent__", "uncheck", {id = id}) end)
                         else
-                            table.insert(state.fn, function() game.interface.sendScriptEvent("__underpassEvent__", "check", {id = id}) end)
+                            table.insert(state.fn, function()game.interface.sendScriptEvent("__underpassEvent__", "check", {id = id}) end)
                         end
                     end
                 )
@@ -133,7 +133,7 @@ local addEntry = function(id)
     end
 end
 
-local showWindow = function()
+local createWindow = function()
     if (not state.windows.window and #state.items > 0) then
         local finishIcon = api.gui.comp.ImageView.new("ui/construction/street/underpass_entry_op.tga")
         local finishButton = api.gui.comp.Button.new(finishIcon, true)
@@ -155,12 +155,16 @@ local showWindow = function()
         
         vLayout:addItem(hcomp)
         
-        state.windows.window:onClose(function()state.linkEntries:setVisible(false, false) end)
+        state.windows.window:onClose(function()
+            state.windows.window:setVisible(false, false) 
+            table.insert(state.fn, function()
+                game.interface.sendScriptEvent("__underpassEvent__", "window.close", {})
+            end)
+        end)
         
         finishButton:onClick(function()
             if (state.windows.window) then
                 table.insert(state.fn, function()
-                    state.windows.window:close()
                     game.interface.sendScriptEvent("__underpassEvent__", "construction", {})
                 end)
             end
@@ -172,6 +176,14 @@ local showWindow = function()
         state.windows.list = vLayout
         
         game.gui.window_setPosition("underpass.window", 200, 200)
+    end
+end
+
+local showWindow = function()
+    if state.windows.window and #state.items > 0 then
+        state.windows.window:setVisible(true, false)
+    elseif not state.windows.window and #state.items > 0 then
+        createWindow()
     end
 end
 
@@ -206,6 +218,10 @@ local checkFn = function()
             state.windows.window:setTitle(_("UNDERPASS_CON"))
         else
             state.windows.button:setEnabled(false)
+        end
+
+        if #state.items == 0 then 
+            state.windows.window:setVisible(false, false)
         end
     end
 end
@@ -384,39 +400,35 @@ local script = {
     guiUpdate = function()
         for _, f in ipairs(state.fn) do f() end
         state.fn = {}
+        
+        if #state.addedItems < #state.items then
+            showWindow()
+        end
 
         if state.windows.window then
-            if (#state.items < 1) then
-                state.windows.window:close()
-            else
-                if (#state.addedItems < #state.items) then
-                    for i = #state.addedItems + 1, #state.items do
-                        addEntry(state.items[i])
-                    end
-                elseif (#state.addedItems > #state.items) then
-                    local remove = func.filter(state.addedItems, function(i) return not func.contains(state.items, i) end)
-                    for _, id in ipairs(remove) do
-                        removeEntry(id)
-                    end
-                else
-                local check = {}
-                    for _, id in ipairs(state.items) do
-                        check[id] = false
-                    end
-                    for _, id in ipairs(state.checkedItems) do
-                        check[id] = true
-                    end
-                    for id, c in pairs(check) do
-                        local check = api.gui.util.getById(("underpass.check.%d"):format(id))
-                        check:setSelected(c, false)
-                    end
+            if (#state.addedItems < #state.items) then
+                for i = #state.addedItems + 1, #state.items do
+                    addEntry(state.items[i])
                 end
-                checkFn()
+            elseif (#state.addedItems > #state.items) then
+                local remove = func.filter(state.addedItems, function(i) return not func.contains(state.items, i) end)
+                for _, id in ipairs(remove) do
+                    removeEntry(id)
+                end
+            else
+                local check = {}
+                for _, id in ipairs(state.items) do
+                    check[id] = false
+                end
+                for _, id in ipairs(state.checkedItems) do
+                    check[id] = true
+                end
+                for id, c in pairs(check) do
+                    local check = api.gui.util.getById(("underpass.check.%d"):format(id))
+                    check:setSelected(c, false)
+                end
             end
-        elseif (state.showWindow and #state.items - #state.built > 0) then
-            showWindow()
             checkFn()
-            state.showWindow = false
         end
     end,
     handleEvent = function(src, id, name, param)
@@ -428,12 +440,6 @@ local script = {
                 state.stations = func.filter(state.stations, function(e) return not func.contains(param, e) end)
                 state.built = func.filter(state.built, function(e) return not func.contains(param, e) end)
             elseif (name == "new") then
-                -- local e = game.interface.getEntity(param.id)
-                -- game.interface.upgradeConstruction(
-                --     param.id,
-                --     e.fileName,
-                --     func.with(pure(e.params), {modules = e.modules, isNotPreview = true})
-                -- )
                 state.items[#state.items + 1] = param.id
                 state.checkedItems[#state.checkedItems + 1] = param.id
                 if (param.isEntry) then state.entries[#state.entries + 1] = param.id
@@ -495,17 +501,18 @@ local script = {
             elseif (entity and entity.type == "STATION_GROUP") then
                 local lastVisited = false
                 local nbGroup = 0
-                local cons = game.interface.getEntities({pos = entity.pos, radius = 9999}, {type = "CONSTRUCTION", includeData = true, fileName = "station/rail/mus.con"})
-                for _, s in ipairs(entity.stations) do
-                    for _, c in pairs(cons) do
-                        if c.params and c.params.isFinalized == 1 and func.contains(c.stations, s) then
-                            lastVisited = c.id
-                            nbGroup = #(func.filter(func.keys(decomp(c.params)), function(g) return g < 9 end))
-                        elseif func.contains(state.items, c.id) then
-                            showWindow()
-                        end
+                local map = api.engine.system.streetConnectorSystem.getStation2ConstructionMap()
+                for _, id in ipairs(api.engine.getComponent(param, api.type.ComponentType.STATION_GROUP).stations) do
+                    local conId = map[id]
+                    local con =  api.engine.getComponent(conId, api.type.ComponentType.CONSTRUCTION)
+                    if (con.fileName == "station/rail/mus.con" and con.params.isFinalized and con.params.isFinalized == 1) then
+                        lastVisited = conId
+                        nbGroup = #(func.filter(func.keys(decomp(con.params)), function(g) return g < 9 end))
+                    elseif func.contains(state.items, conId) then
+                        showWindow()
                     end
                 end
+                
                 if lastVisited then
                     game.interface.sendScriptEvent("__underpassEvent__", "select", {id = lastVisited, nbGroup = nbGroup})
                 end
@@ -527,7 +534,6 @@ local script = {
                     if (con.fileName == [[street/underpass_entry.con]]) then
                         shaderWarning()
                         game.interface.sendScriptEvent("__underpassEvent__", "new", {id = param.result[1], isEntry = true})
-                        state.showWindow = true
                     end
                 end
             end
