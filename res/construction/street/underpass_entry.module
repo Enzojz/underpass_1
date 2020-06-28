@@ -2,6 +2,7 @@ local func = require "entry/func"
 local coor = require "entry/coor"
 local pipe = require "entry/pipe"
 local general = require "entry/general"
+-- local dump = require "luadump"
 
 local unpack = table.unpack
 local ma = math
@@ -129,7 +130,9 @@ function data()
         },
         
         updateFn = function(result, transform, tag, slotId, addModelFn, params)
+            local hasSign = params.hasSign
             local params = result.entryModules[slotId].params and result.entryModules[slotId].params or params
+            params.hasSign = params.hasSign or hasSign or 0
             local _ = func.forEach(getModels(params, result, slotId), function(m) addModelFn(m.id, m.transf) end)
             local dz = 0
             local width = widthList[(params.width or 1) + 1]
@@ -139,11 +142,22 @@ function data()
                 coor.xyz(3.5 + width * 0.5, 5.2085, -3.9 + dz) .. transform
             }
 
-            if (params.isStation) then
+            if params.isStation then
                 table.insert(result.invoke[2], function()
                     local mdl = func.with(
                         general.newModel(
-                            "entry/signs/signs_entry_" .. tostring(width) .. ".mdl", 
+                            string.format("entry/signs/signs_entry_%d.mdl", width), 
+                            coor.trans(params.style == 2 and coor.xyz(0, 1.85, 1.8) or coor.xyz(0, -1, 1.8)) * transform
+                        ),
+                        {tag = tag}
+                    )
+                    table.insert(result.models, mdl)
+                end)
+            elseif params.hasSign == 1 then
+                table.insert(result.invoke[2], function()
+                    local mdl = func.with(
+                        general.newModel(
+                            string.format("entry/signs/signs_entry_underpass_%d.mdl", width), 
                             coor.trans(params.style == 2 and coor.xyz(0, 1.85, 1.8) or coor.xyz(0, -1, 1.8)) * transform
                         ),
                         {tag = tag}

@@ -57,6 +57,17 @@ local vecXyMeta = {
     end,
     __unm = function(lhs)
         return lhs * -1
+    end,
+    __index = function(xy, key)
+        if key == 1 then
+          return xy.x
+        elseif key == 2 then
+          return xy.y
+        elseif key == 3 then
+            return 0
+        else
+            return nil
+        end
     end
 }
 
@@ -105,6 +116,17 @@ local vecXyzMeta = {
     end,
     __unm = function(lhs)
         return lhs * -1
+    end,
+    __index = function(xyz, key)
+        if key == 1 then
+          return xyz.x
+        elseif key == 2 then
+          return xyz.y
+        elseif key == 3 then
+            return xyz.z
+        else
+            return nil
+        end
     end
 }
 
@@ -141,6 +163,10 @@ function coor.xyz(x, y, z)
     }
     setmetatable(result, vecXyzMeta)
     return result
+end
+
+function coor.new(edge)
+    return coor.xyz(edge[1], edge[2], edge[3])
 end
 
 coor.o = coor.xyz(0, 0, 0)

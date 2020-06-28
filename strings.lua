@@ -8,6 +8,9 @@ Usage:
 * This mod requires "Shader enhancement" mod to render textures correctly.
 
 Changelog:
+1.5
+- Refactorized creation dialogue(no more flickering on remove entries or underground levels)
+- Entry signs for underpass
 1.4
 - Redesigned the dialogue logic for being player-friendly
 1.3
@@ -30,6 +33,9 @@ local descCN = [[本模组可自由建造人行地道
 * 本模组需要“着色器增强”模组方可正确渲染
 
 更新日志:
+1.5
+- 重写创建对话框（消除了删减入口和车站的时的闪烁）
+- 增加对地道入口牌子的支持
 1.4
 - 重新设计了对话框逻辑对玩家更友好
 1.3
@@ -80,6 +86,7 @@ function data()
             ["MENU_WIDTH"] = "Width(m)",
             ["MENU_NAME"] = "Underpass/Undergroudn Entry",
             ["MENU_DESC"] = "An underpass or underground station entry",
+            ["MENU_HAS_SIGN"] = "Signs over the entries",
             ["BUILT"] = " (modifiable)",
             ["UNDERPASS_CON"] = "Underpass Construction",
             ["STATION_CON"] = "Underground Station Construction",
@@ -117,6 +124,7 @@ check the checkbox before the icon.]]
             ["MENU_WIDTH"] = "宽度(米)",
             ["MENU_NAME"] = "地道/地下车站入口",
             ["MENU_DESC"] = "通往人行地道或地下车站的入口.",
+            ["MENU_HAS_SIGN"] = "入口牌",
             ["BUILT"] = " (可修改)",
             ["SHADER_WARNING"] = [["人行地道"模组需要"着色器增强"模组的支持方可运行，否则您将看到不正常的贴图]],
             ["Warning"] = "警告",
@@ -153,6 +161,7 @@ check the checkbox before the icon.]]
             ["MENU_WIDTH"] = "寬度(米)",            
             ["MENU_NAME"] = "地道/地下車站入口",
             ["MENU_DESC"] = "通往人行地道或地下車站的入口.",
+            ["MENU_HAS_SIGN"] = "入口牌",
             ["SHADER_WARNING"] = [["人行地道"模組需要"著色器增強"模組的支持方可運行，否則您將看到不正常的貼圖]],
             ["Warning"] = "警告",            
             ["BUILT"] = " (可修改)",

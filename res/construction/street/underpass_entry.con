@@ -52,7 +52,8 @@ function data()
             occupied = {{}, {}, {}, {}},
             cost = 0,
             models = pipe.new * {},
-            entryModules = params.modules
+            entryModules = params.modules,
+            invoke = {{}, {}},
         }
         
         result.slots = func.mapi(params.modules, function(e, i)
@@ -65,8 +66,12 @@ function data()
         end)
 
         result.terminateConstructionHook = function()
+            for _, f in ipairs(result.invoke[1]) do f() end
+            for _, f in ipairs(result.invoke[2]) do f() end
+
             local entryConn = {}
             local entrySide = {}
+            result.entryConnectors = func.map(result.entryConnectors, pipe.map(function(c) return coor.xyz(c.x, c.y, c.z) end))
             for i = 1, #result.entryConnectors do
                 entrySide[i] = {false, false}
                 for j = 1, i - 1 do
@@ -144,6 +149,12 @@ function data()
                 name = _("MENU_WIDTH"),
                 values = func.map(widthList, tostring),
                 defaultIndex = 1
+            },
+            {
+                key = "hasSign",
+                name = _("MENU_HAS_SIGN"),
+                values = {_("NO"), _("YES")},
+                defaultIndex = 0
             },
         },
         upgradeFn = upgradeFn,

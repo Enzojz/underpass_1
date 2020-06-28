@@ -1,7 +1,7 @@
 local pipe = require "entry/pipe"
 local func = require "entry/func"
 local coor = require "entry/coor"
-local dump = require "luadump"
+-- local dump = require "luadump"
 
 local state = {
     warningShaderMod = false,
@@ -76,8 +76,8 @@ local addEntry = function(id)
     if (state.windows.window) then
         local entity = game.interface.getEntity(id)
         if (entity) then
-            local isEntry = entity.fileName == "street/underpass_entry.con"
-            local isStation = entity.fileName == "station/rail/mus.con"
+            local isEntry = func.contains(state.entries, id)
+            local isStation = func.contains(state.stations, id)
             local isBuilt = isStation and entity.params and entity.params.isFinalized == 1
             if (isEntry or isStation) then
                 local check = api.gui.comp.CheckBox.new(
@@ -156,7 +156,7 @@ local createWindow = function()
         vLayout:addItem(hcomp)
         
         state.windows.window:onClose(function()
-            state.windows.window:setVisible(false, false) 
+            state.windows.window:setVisible(false, false)
             table.insert(state.fn, function()
                 game.interface.sendScriptEvent("__underpassEvent__", "window.close", {})
             end)
@@ -219,8 +219,8 @@ local checkFn = function()
         else
             state.windows.button:setEnabled(false)
         end
-
-        if #state.items == 0 then 
+        
+        if #state.items == 0 then
             state.windows.window:setVisible(false, false)
         end
     end
@@ -291,7 +291,7 @@ local buildStation = function(entries, stations, built)
     for _, e in ipairs(entries) do
         local g = {
             metadata = {entry = true},
-            name = "street/underpass_entry.module",
+            name = e.params.modules[1].name,
             variant = 0,
             transf = e.transf,
             params = func.with(pure(e.params), {isStation = true})
@@ -352,7 +352,7 @@ local buildUnderpass = function(entries)
     local _ = entries * pipe.range(2, #entries) * pipe.map(pipe.select("id")) * pipe.forEach(game.interface.bulldoze)
     local newId = game.interface.upgradeConstruction(
         ref.id,
-        "street/underpass_entry.con",
+        ref.fileName,
         func.with(
             pure(ref.params),
             {
@@ -361,7 +361,7 @@ local buildUnderpass = function(entries)
                         local vec, rot, _ = coor.decomposite(entry.transf)
                         return {
                             metadata = {entry = true},
-                            name = "street/underpass_entry.module",
+                            name = entry.params.modules[1].name,
                             variant = 0,
                             transf = iRot * rot * coor.trans((vec - vecRef) .. iRot),
                             params = pure(entry.params)
@@ -404,7 +404,7 @@ local script = {
         if #state.addedItems < #state.items then
             showWindow()
         end
-
+        
         if state.windows.window then
             if (#state.addedItems < #state.items) then
                 for i = #state.addedItems + 1, #state.items do
@@ -457,6 +457,10 @@ local script = {
                     * pipe.map(game.interface.getEntity)
                     * pipe.filter(pipe.noop())
                 
+                entries =
+                    entries * pipe.filter(function(e) return e.fileName == "street/underpass_entry.con" end) +
+                    entries * pipe.filter(function(e) return e.fileName ~= "street/underpass_entry.con" end)
+                
                 local built = pipe.new
                     * state.checkedItems
                     * pipe.filter(function(e) return func.contains(state.built, e) end)
@@ -504,7 +508,7 @@ local script = {
                 local map = api.engine.system.streetConnectorSystem.getStation2ConstructionMap()
                 for _, id in ipairs(api.engine.getComponent(param, api.type.ComponentType.STATION_GROUP).stations) do
                     local conId = map[id]
-                    local con =  api.engine.getComponent(conId, api.type.ComponentType.CONSTRUCTION)
+                    local con = api.engine.getComponent(conId, api.type.ComponentType.CONSTRUCTION)
                     if (con.fileName == "station/rail/mus.con" and con.params.isFinalized and con.params.isFinalized == 1) then
                         lastVisited = conId
                         nbGroup = #(func.filter(func.keys(decomp(con.params)), function(g) return g < 9 end))
