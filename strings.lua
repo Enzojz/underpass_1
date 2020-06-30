@@ -8,6 +8,8 @@ Usage:
 * This mod requires "Shader enhancement" mod to render textures correctly.
 
 Changelog:
+1.6
+- Bugfix to lost item when modifying unfinished station
 1.5
 - Refactorized creation dialogue(no more flickering on remove entries or underground levels)
 - Entry signs for underpass
@@ -33,6 +35,8 @@ local descCN = [[本模组可自由建造人行地道
 * 本模组需要“着色器增强”模组方可正确渲染
 
 更新日志:
+1.6
+- 修正了在修改没有完成的车站时相关条目从对话框中消失的问题
 1.5
 - 重写创建对话框（消除了删减入口和车站的时的闪烁）
 - 增加对地道入口牌子的支持
@@ -59,6 +63,11 @@ local descTC = [[本模組可自由建造人行地道
 * 本模組需要“著色器增強”模組方可正確渲染
 
 更新日誌:
+1.6
+- 修正了在修改沒有完成的車站時相關條目從對話方塊中消失的問題
+1.5
+- 重寫創建對話方塊（消除了刪減入口和車站的時的閃爍）
+- 增加對地道入口牌子的支持
 1.4
 - 重新設計了對話方塊邏輯對玩家更友好
 1.3

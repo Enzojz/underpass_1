@@ -508,12 +508,14 @@ local script = {
                 local map = api.engine.system.streetConnectorSystem.getStation2ConstructionMap()
                 for _, id in ipairs(api.engine.getComponent(param, api.type.ComponentType.STATION_GROUP).stations) do
                     local conId = map[id]
-                    local con = api.engine.getComponent(conId, api.type.ComponentType.CONSTRUCTION)
-                    if (con.fileName == "station/rail/mus.con" and con.params.isFinalized and con.params.isFinalized == 1) then
-                        lastVisited = conId
-                        nbGroup = #(func.filter(func.keys(decomp(con.params)), function(g) return g < 9 end))
-                    elseif func.contains(state.items, conId) then
-                        showWindow()
+                    if conId then
+                        local con = api.engine.getComponent(conId, api.type.ComponentType.CONSTRUCTION)
+                        if (con.fileName == "station/rail/mus.con" and con.params.isFinalized and con.params.isFinalized == 1) then
+                            lastVisited = conId
+                            nbGroup = #(func.filter(func.keys(decomp(con.params)), function(g) return g < 9 end))
+                        elseif func.contains(state.items, conId) then
+                            showWindow()
+                        end
                     end
                 end
                 
@@ -525,19 +527,21 @@ local script = {
         if name == "builder.apply" then
             local toRemove = param.proposal.toRemove
             local toAdd = param.proposal.toAdd
-            if toRemove then
-                local params = {}
-                for _, r in ipairs(toRemove) do if func.contains(state.items, r) then params[#params + 1] = r end end
-                if (#params > 0) then
-                    game.interface.sendScriptEvent("__underpassEvent__", "remove", params)
+            if not (toRemove and #toRemove == 1 and toAdd and #toAdd == 1 and toRemove[1] == param.result[1]) then
+                if toRemove then
+                    local params = {}
+                    for _, r in ipairs(toRemove) do if func.contains(state.items, r) then params[#params + 1] = r end end
+                    if (#params > 0) then
+                        game.interface.sendScriptEvent("__underpassEvent__", "remove", params)
+                    end
                 end
-            end
-            if toAdd and #toAdd > 0 then
-                for i = 1, #toAdd do
-                    local con = toAdd[i]
-                    if (con.fileName == [[street/underpass_entry.con]]) then
-                        shaderWarning()
-                        game.interface.sendScriptEvent("__underpassEvent__", "new", {id = param.result[1], isEntry = true})
+                if toAdd and #toAdd > 0 then
+                    for i = 1, #toAdd do
+                        local con = toAdd[i]
+                        if (con.fileName == [[street/underpass_entry.con]]) then
+                            shaderWarning()
+                            game.interface.sendScriptEvent("__underpassEvent__", "new", {id = param.result[1], isEntry = true})
+                        end
                     end
                 end
             end
