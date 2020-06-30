@@ -2,6 +2,7 @@ local func = require "entry/func"
 local coor = require "entry/coor"
 local pipe = require "entry/pipe"
 local general = require "entry/general"
+-- local dump = require "luadump"
 
 local unpack = table.unpack
 
@@ -61,7 +62,7 @@ function data()
                 id = i,
                 transf = e.transf or coor.I(),
                 type = "entry",
-                spacing = {0, 0, 0, 0}
+                spacing = {2.5, 2.5, 2.5, 2.5}
             }
         end)
 
