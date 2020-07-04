@@ -2,7 +2,6 @@ local pipe = require "entry/pipe"
 local func = require "entry/func"
 local coor = require "entry/coor"
 -- local dump = require "luadump"
-
 local state = {
     warningShaderMod = false,
     
@@ -496,7 +495,7 @@ local script = {
         end
     end,
     guiHandleEvent = function(id, name, param)
-        if (name == "select") then
+        if id == "mainView" and name == "select" then
             local entity = game.interface.getEntity(param)
             if (entity and entity.type == "CONSTRUCTION" and entity.fileName == "street/underpass_entry.con") then
                 if func.contains(state.items, entity.id) then
@@ -520,7 +519,31 @@ local script = {
                 end
                 
                 if lastVisited then
-                    game.interface.sendScriptEvent("__underpassEvent__", "select", {id = lastVisited, nbGroup = nbGroup})
+                    if not api.gui.util.getById("mus.config." .. param) then
+                        local w = api.gui.util.getById("temp.view.entity_" .. param)
+                        local layout = w:getLayout()
+                        local subWindow = layout:getItem(1)
+                        local subLayout = subWindow:getLayout():getItem(0)
+                        local buttonText = api.gui.comp.TextView.new(_("UNDERGROUND_EXTEND"))
+                        local buttonImage = api.gui.comp.ImageView.new("ui/icons/game-menu/configure.tga")
+                        local buttonLayout = api.gui.layout.BoxLayout.new("HORIZONTAL")
+                        local buttonComp = api.gui.comp.Component.new("")
+                        buttonLayout:addItem(buttonImage)
+                        buttonLayout:addItem(buttonText)
+                        buttonComp:setLayout(buttonLayout)
+                        local button = api.gui.comp.Button.new(buttonComp, true)
+                        buttonText:setName("ConfigureButton::Text")
+                        button:setName("ConfigureButton")
+                        button:setId("mus.config." .. param)
+                        
+                        subLayout:addItem(button)
+
+                        button:onClick(function()
+                            table.insert(state.fn, function()
+                            game.interface.sendScriptEvent("__underpassEvent__", "select", {id = lastVisited, nbGroup = nbGroup})
+                            end)
+                        end)
+                    end
                 end
             end
         end

@@ -100,6 +100,7 @@ function data()
             ["UNDERPASS_CON"] = "Underpass Construction",
             ["STATION_CON"] = "Underground Station Construction",
             ["SHADER_WARNING"] = [["Underpass" mod requires "Shader Enhancement" mod, you will see strange texture without this mod.]],
+            ["UNDERGROUND_EXTEND"] = "Add entry/level",
             ["STATION_MAX_LIMIT"] = 
 [[You can only build at most 8 platform levels into one
 station. Uncheck platform levels to reduce them.]],
@@ -137,6 +138,7 @@ check the checkbox before the icon.]]
             ["BUILT"] = " (可修改)",
             ["SHADER_WARNING"] = [["人行地道"模组需要"着色器增强"模组的支持方可运行，否则您将看到不正常的贴图]],
             ["Warning"] = "警告",
+            ["UNDERGROUND_EXTEND"] = "增加入口或站厅层",
             ["UNDERPASS_CON"] = "建造人行地道",
             ["STATION_CON"] = "建造地下车站",
             ["STATION_MAX_LIMIT"] = 
@@ -172,6 +174,7 @@ check the checkbox before the icon.]]
             ["MENU_DESC"] = "通往人行地道或地下車站的入口.",
             ["MENU_HAS_SIGN"] = "入口牌",
             ["SHADER_WARNING"] = [["人行地道"模組需要"著色器增強"模組的支持方可運行，否則您將看到不正常的貼圖]],
+            ["UNDERGROUND_EXTEND"] = "增加入口或站廳層",
             ["Warning"] = "警告",            
             ["BUILT"] = " (可修改)",
             ["UNDERPASS_CON"] = "建造人行地道",
