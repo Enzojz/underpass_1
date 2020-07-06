@@ -33,6 +33,7 @@ return {
 			magFilter = "LINEAR",
 			minFilter = "LINEAR_MIPMAP_LINEAR",
 			mipmapAlphaScale = 0,
+			redGreen = true,
 			type = "TWOD",
 			wrapS = "REPEAT",
 			wrapT = "REPEAT",

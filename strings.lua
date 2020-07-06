@@ -8,6 +8,9 @@ Usage:
 * This mod requires "Shader enhancement" mod to render textures correctly.
 
 Changelog:
+1.7
+- UI improvement to underground stations
+- Optimization of resource files
 1.6
 - Bugfix to lost item when modifying unfinished station
 1.5
@@ -35,6 +38,9 @@ local descCN = [[本模组可自由建造人行地道
 * 本模组需要“着色器增强”模组方可正确渲染
 
 更新日志:
+1.7
+- 地下车站的UI改进
+- 资源文件优化
 1.6
 - 修正了在修改没有完成的车站时相关条目从对话框中消失的问题
 1.5
@@ -63,6 +69,9 @@ local descTC = [[本模組可自由建造人行地道
 * 本模組需要“著色器增強”模組方可正確渲染
 
 更新日誌:
+1.7
+- 地下車站的UI改進
+- 資源檔優化
 1.6
 - 修正了在修改沒有完成的車站時相關條目從對話方塊中消失的問題
 1.5
