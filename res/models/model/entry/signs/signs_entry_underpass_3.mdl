@@ -15,8 +15,8 @@ function data()
                 node = {
                     children = {
                         {
-                            materials = {"mus/platform_signs.mtl"},
-                            mesh = "mus/signs/platform_signs.msh",
+                            materials = {"entry/platform_signs.mtl"},
+                            mesh = "entry/signs/platform_signs.msh",
                             name = "name_board",
                             transf =
                             coor.scale(coor.xyz(width + 1, thickness, height)) *
@@ -24,28 +24,28 @@ function data()
                         },
                         {
                             materials = {"entry/entry_fence.mtl"},
-                            mesh = "mus/signs/platform_signs_left.msh",
+                            mesh = "entry/signs/platform_signs_left.msh",
                             transf =
                             coor.scale(coor.xyz(1, thickness, (height + 0.04) / 1.04)) *
                             coor.trans(coor.xyz(-width * 0.5 - 0.5, 0, 0.25))
                         },
                         {
                             materials = {"entry/entry_fence.mtl"},
-                            mesh = "mus/signs/platform_signs_right.msh",
+                            mesh = "entry/signs/platform_signs_right.msh",
                             transf =
                             coor.scale(coor.xyz(1, thickness, (height + 0.04) / 1.04)) *
                             coor.trans(coor.xyz(width * 0.5 + 0.5, 0, 0.25))
                         },
                         {
                             materials = {"entry/entry_fence.mtl"},
-                            mesh = "mus/signs/platform_signs_top.msh",
+                            mesh = "entry/signs/platform_signs_top.msh",
                             transf =
                             coor.scale(coor.xyz(width + 1, thickness, 1)) *
                             coor.trans(coor.xyz(0, 0, height * 0.5 + 0.25))
                         },
                         {
                             materials = {"entry/entry_fence.mtl"},
-                            mesh = "mus/signs/platform_signs_bottom.msh",
+                            mesh = "entry/signs/platform_signs_bottom.msh",
                             transf =
                             coor.scale(coor.xyz(width + 1, thickness, 1)) *
                             coor.trans(coor.xyz(0, 0, -height * 0.5 + 0.25))
