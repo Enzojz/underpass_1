@@ -43,7 +43,7 @@ local pure = function(pa)
     return params
 end
 
-local decomp = function(params)
+local decomp = function(params, transf)
     local group = {}
     for slotId, m in pairs(params.modules) do
         local groupId = (slotId - slotId % 10000) / 10000 % 10
@@ -51,7 +51,7 @@ local decomp = function(params)
             group[groupId] = {
                 modules = {},
                 params = m.params,
-                transf = m.transf
+                transf = m.transf or transf
             }
         end
         group[groupId].modules[slotId - groupId * 10000] = m
@@ -264,7 +264,7 @@ local buildStation = function(entries, stations, built)
     
     if (built and #built > 0) then
         for _, b in ipairs(built) do
-            local group = decomp(b.params)
+            local group = decomp(b.params, b.transf)
             for gId, g in pairs(group) do
                 if (gId == 9) then
                     for _, m in ipairs(g.modules) do
