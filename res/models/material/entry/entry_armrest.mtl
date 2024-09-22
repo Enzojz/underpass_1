@@ -55,9 +55,9 @@ return {
 		},
 		operation_1 = {
 			op = "MULTIPLICATION",
-			mode = "NORMAL",
+			mode = "UV_MODE_TNG_BIN",
 			scale = { 1.0, 1.0 },
-			opacity = -1025.0
+			opacity = 1
 		}, 
 		
 	},
